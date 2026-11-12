@@ -125,7 +125,7 @@ export async function buildReviewHtml(db,id){
   const productRows=goods.map((x,i)=>'<tr><td class="center">'+(i+1)+'</td><td><b>'+esc(x.nama_barang)+'</b><br><span class="muted">Spesifikasi: '+esc(x.spesifikasi||'—')+'</span>'+(x.foto_signed_url?'<div class="product-photo"><img src="'+esc(x.foto_signed_url)+'" alt="Produk '+esc(x.nama_barang)+'"></div>':'')+'</td></tr>').join('');
   const vendorRows=vendors.map((v,i)=>{let info={};try{info=JSON.parse(v.keterangan||'{}')}catch{}return '<tr><td class="center">'+(i+1)+'</td><td><b>'+esc(v.nama_penyedia)+'</b><br>Alamat/lokasi: '+esc(info.lokasi||v.alamat||'—')+'<br>Link produk: '+(info.link_produk?'<a href="'+esc(info.link_produk)+'">'+esc(info.link_produk)+'</a>':'—')+'</td></tr>'}).join('');
   const meta=[
-    ['Nomor',d.nomor_surat||'—'],
+    ['Nomor',((Array.isArray(r.hasil_reviu)&&r.hasil_reviu[0]?.nomor_berita_acara)||'—')],
     ['Tanggal',date(r.tanggal_reviu||d.tanggal_surat)],
     ['Nama Paket',d.nama_paket],
     ['OPD',d.nama_opd_snapshot],
