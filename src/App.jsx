@@ -71,11 +71,14 @@ function App(){
   B(true);Err('');N('');
   try{
    const html=await buildProcurementHtml(db,id);
-   const host=document.createElement('div');host.style.position='fixed';host.style.left='-10000px';host.style.top='0';host.style.width='794px';host.innerHTML=html;
-   document.body.appendChild(host);
-   const content=host.querySelector('body')||host;
-   const blob=await html2pdf().set({margin:0,filename:'surat-pesanan.pdf',image:{type:'jpeg',quality:0.96},html2canvas:{scale:2,useCORS:true,logging:false},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}}).from(content).outputPdf('blob');
+   const parsed=new DOMParser().parseFromString(html,'text/html');
+   const host=document.createElement('div');host.style.position='fixed';host.style.left='-20000px';host.style.top='0';host.style.width='794px';host.style.background='#fff';
+   const style=document.createElement('style');style.textContent=Array.from(parsed.head.querySelectorAll('style')).map(x=>x.textContent).join('\n');host.appendChild(style);
+   const content=document.createElement('div');content.className='pdf-render-root';content.style.width='794px';content.innerHTML=parsed.body.innerHTML;host.appendChild(content);document.body.appendChild(host);
+   await Promise.all(Array.from(content.querySelectorAll('img')).map(img=>img.complete?Promise.resolve():new Promise(resolve=>{img.onload=resolve;img.onerror=resolve})));
+   const blob=await html2pdf().set({margin:0,filename:'surat-pesanan.pdf',image:{type:'jpeg',quality:0.96},html2canvas:{scale:2,useCORS:true,logging:false,windowWidth:794},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}}).from(content).outputPdf('blob');
    host.remove();
+   if(!blob||blob.size<1000)throw new Error('PDF kosong atau terlalu kecil. Data belum berhasil dirender.');
    const {data:existing,error:lookupError}=await db.from('arsip_pdf').select('versi').eq('surat_id',id).order('versi',{ascending:false}).limit(1);
    if(lookupError)throw lookupError;
    const versi=(existing?.[0]?.versi||0)+1;
