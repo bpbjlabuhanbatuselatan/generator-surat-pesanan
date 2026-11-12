@@ -83,7 +83,7 @@ export async function buildReviewHtml(db,id){
   for(const x of goods)if(x.foto_produk_path){const q=await db.storage.from('foto-produk').createSignedUrl(x.foto_produk_path,300);x.foto_signed_url=q.data?.signedUrl||'';}
   for(const x of signers)if(x.tanda_tangan_path_snapshot){const q=await db.storage.from('tanda-tangan').createSignedUrl(x.tanda_tangan_path_snapshot,300);x.signature_url=q.data?.signedUrl||'';}
   const supporting=documents.data||[];for(const x of supporting)if(x.storage_path){const q=await db.storage.from('dokumen-pendukung').createSignedUrl(x.storage_path,300);x.signed_url=q.data?.signedUrl||'';}
-  const ppbjSignature='<div class="signature-cell"><div class="signature-role">PEJABAT PENGADAAN BARANG/JASA</div><div class="signature-space"><img src="/generator-surat-pesanan/ali-akbar-signature.svg" alt="Tanda tangan Ali Akbar"></div><b>ALI AKBAR, SE</b><br>NIP. 199203032022031004</div>';
+  const ppbjSignature='<div class="signature-cell"><div class="signature-role">PEJABAT PENGADAAN BARANG/JASA</div><div class="signature-space"></div><b>ALI AKBAR, SE</b><br>NIP. 199203032022031004</div>';
   const signatureBlock=role=>{
     const p=signers.find(x=>x.peran===role);
     if(!p)return '<div class="signature-cell">'+esc(role)+'<div class="signature-space"></div><b>(................................)</b></div>';
