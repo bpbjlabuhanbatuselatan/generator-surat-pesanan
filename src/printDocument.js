@@ -4,7 +4,8 @@ export async function openProcurementPrint(db, id) {
     db.from('detail_barang').select('*').eq('surat_id', id).order('nomor_urut'),
     db.from('penyedia').select('*').eq('surat_id', id).order('created_at'),
     db.from('referensi_harga').select('*').eq('surat_id', id).order('created_at'),
-    db.from('dokumen_pendukung').select('*').eq('surat_id', id).order('nomor_urut')
+    db.from('dokumen_pendukung').select('*').eq('surat_id', id).order('nomor_urut'),
+    db.from('surat_pejabat').select('*').eq('surat_id', id).order('created_at')
   ]);
   const error = [s, items, providers, refs, docs, officials].find(x => x.error);
   if (error) throw error.error;
