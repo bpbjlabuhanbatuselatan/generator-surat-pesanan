@@ -91,7 +91,7 @@ export async function buildReviewHtml(db,id){
   };
   const date=v=>{if(!v)return '—';const x=new Date(v+'T00:00:00');return Number.isNaN(x.getTime())?esc(v):x.toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'});};
   const category=(title)=>'<tr class="section-row"><th colspan="4">'+title+'</th></tr>';
-  const reviewRow=(no,title,question,response)=>'<tr><td class="center">'+no+'</td><td>'+title+'</td><td>'+question+'</td><td>'+response+'</td></tr>';
+  const reviewNumbers=Array.isArray(checks.nomor_tinjauan)?checks.nomor_tinjauan:[];const reviewRow=(no,title,question,response)=>'<tr><td class="center">'+esc(reviewNumbers[Number(no)-1]??no)+'</td><td>'+title+'</td><td>'+question+'</td><td>'+response+'</td></tr>';
   const contract=d.bentuk_kontrak||'Surat Pesanan';
   const method=d.metode_pengadaan||'E-purchasing';
   const rows=[
@@ -119,7 +119,7 @@ export async function buildReviewHtml(db,id){
     category('PERSIAPAN PEMILIHAN OLEH PEJABAT PENGADAAN'),
     reviewRow('16','Penetapan metode pemilihan penyedia','Ditetapkan oleh Pejabat Pengadaan dengan diketahui PPK.',''+esc(method))
   ].join('');
-  const checks=Array.isArray(r.hasil_reviu)?(r.hasil_reviu[0]||{}):{};
+  
   const checkText=(v,fallback)=>v&&String(v).trim()?esc(v):(fallback||'<span class="muted">Belum diisi — lengkapi berdasarkan hasil pemeriksaan aktual.</span>');
   const productRows=goods.map((x,i)=>'<tr><td class="center">'+(i+1)+'</td><td><b>'+esc(x.nama_barang)+'</b><br><span class="muted">Spesifikasi: '+esc(x.spesifikasi||'—')+'</span>'+(x.foto_signed_url?'<div class="product-photo"><img src="'+esc(x.foto_signed_url)+'" alt="Produk '+esc(x.nama_barang)+'"></div>':'')+'</td></tr>').join('');
   const vendorRows=vendors.map((v,i)=>{let info={};try{info=JSON.parse(v.keterangan||'{}')}catch{}return '<tr><td class="center">'+(i+1)+'</td><td><b>'+esc(v.nama_penyedia)+'</b><br>Alamat/lokasi: '+esc(info.lokasi||v.alamat||'—')+'<br>Link produk: '+(info.link_produk?'<a href="'+esc(info.link_produk)+'">'+esc(info.link_produk)+'</a>':'—')+'</td></tr>'}).join('');
