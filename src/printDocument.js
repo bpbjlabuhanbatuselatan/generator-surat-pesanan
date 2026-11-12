@@ -91,6 +91,7 @@ export async function buildReviewHtml(db,id){
   };
   const date=v=>{if(!v)return '—';const x=new Date(v+'T00:00:00');return Number.isNaN(x.getTime())?esc(v):x.toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'});};
   const category=(title)=>'<tr class="section-row"><th colspan="4">'+title+'</th></tr>';
+  const checks=Array.isArray(r.hasil_reviu)?(r.hasil_reviu[0]||{}):{};
   const reviewNumbers=Array.isArray(checks.nomor_tinjauan)?checks.nomor_tinjauan:[];const reviewRow=(no,title,question,response)=>'<tr><td class="center">'+esc(reviewNumbers[Number(no)-1]??no)+'</td><td>'+title+'</td><td>'+question+'</td><td>'+response+'</td></tr>';
   const contract=d.bentuk_kontrak||'Surat Pesanan';
   const method=d.metode_pengadaan||'E-purchasing';
