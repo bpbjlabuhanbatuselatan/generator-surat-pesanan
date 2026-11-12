@@ -53,3 +53,13 @@
 .attachment-type{background:#f7fafe;border:1px solid #d7e2ed;border-radius:11px}
 .review-card{background:#f8fbff}
 @media(max-width:620px){.panel{border-radius:12px}.provider-card{padding:12px}.content{padding:12px}}
+
+.form-tabs{display:flex;gap:10px;padding:8px;background:#edf3f8;border:1px solid #d7e2ed;border-radius:12px;margin:20px 0 24px}
+.form-tab{flex:1;border:1px solid transparent;border-radius:9px;padding:13px 16px;background:transparent;color:#49637e;font:800 12px Manrope;text-align:center}
+.form-tab.active{background:linear-gradient(110deg,#102b4e,#245b86);color:#fff;border-color:#c89b45;box-shadow:0 5px 14px #102b4e24}
+.review-intro{padding:18px 20px;border:1px solid #d8e3ee;border-left:4px solid #c89b45;border-radius:12px;background:linear-gradient(110deg,#f1f6fb,#fff);margin:8px 0 20px}
+.review-intro h3{margin:0 0 6px;color:#173e64;font:800 17px Manrope}
+.review-intro p{margin:0;color:#6e8297;font-size:11px;line-height:1.6}
+.danger-btn{color:#a43d3d;border-color:#e6caca}
+.danger-btn:hover{background:#fff0f0;border-color:#c96b6b}
+@media(max-width:620px){.form-tabs{gap:6px;padding:6px}.form-tab{padding:11px 7px;font-size:10px}}
