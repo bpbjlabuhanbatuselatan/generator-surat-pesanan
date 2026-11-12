@@ -67,28 +67,72 @@ export async function buildProcurementHtml(db, id) {
 }
 
 export async function buildReviewHtml(db,id){
-  const [s,review,officials]=await Promise.all([
+  const [s,review,officials,items,providers]=await Promise.all([
     db.from('surat').select('*').eq('id',id).single(),
     db.from('reviu').select('*').eq('surat_id',id).order('created_at',{ascending:false}).limit(1).maybeSingle(),
-    db.from('surat_pejabat').select('*').eq('surat_id',id).order('created_at')
+    db.from('surat_pejabat').select('*').eq('surat_id',id).order('created_at'),
+    db.from('detail_barang').select('*').eq('surat_id',id).order('nomor_urut'),
+    db.from('penyedia').select('*').eq('surat_id',id).order('created_at')
   ]);
-  for(const q of [s,review,officials])if(q.error)throw q.error;
+  for(const q of [s,review,officials,items,providers])if(q.error)throw q.error;
   if(!review.data)throw new Error('Berita Acara Reviu belum tersimpan untuk surat ini.');
   const esc=v=>String(v??'—').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const signers=officials.data||[];
-  for(const signer of signers)if(signer.tanda_tangan_path_snapshot){
-    const signed=await db.storage.from('tanda-tangan').createSignedUrl(signer.tanda_tangan_path_snapshot,300);
-    signer.signature_url=signed.data?.signedUrl||'';
-  }
+  const rp=v=>v==null||v===''?'—':new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(Number(v));
+  const d=s.data,r=review.data,goods=items.data||[],vendors=providers.data||[],signers=officials.data||[];
+  for(const x of goods)if(x.foto_produk_path){const q=await db.storage.from('foto-produk').createSignedUrl(x.foto_produk_path,300);x.foto_signed_url=q.data?.signedUrl||'';}
+  for(const x of signers)if(x.tanda_tangan_path_snapshot){const q=await db.storage.from('tanda-tangan').createSignedUrl(x.tanda_tangan_path_snapshot,300);x.signature_url=q.data?.signedUrl||'';}
   const signatureBlock=role=>{
     const p=signers.find(x=>x.peran===role);
     if(!p)return '<div class="signature-cell">'+esc(role)+'<div class="signature-space"></div><b>(................................)</b></div>';
-    return '<div class="signature-cell"><div class="signature-role">'+esc(p.jabatan_snapshot||p.peran)+'</div><div class="signature-space">'+(p.signature_url?'<img src="'+p.signature_url+'" alt="Tanda tangan '+esc(p.nama_snapshot)+'">':'')+'</div><b>'+esc(p.nama_snapshot)+'</b>'+(p.nip_snapshot?'<br>NIP. '+esc(p.nip_snapshot):'')+'</div>';
+    return '<div class="signature-cell"><div class="signature-role">'+esc(p.jabatan_snapshot||p.peran)+'</div><div class="signature-space">'+(p.signature_url?'<img src="'+esc(p.signature_url)+'" alt="Tanda tangan '+esc(p.nama_snapshot)+'">':'')+'</div><b>'+esc(p.nama_snapshot)+'</b>'+(p.nip_snapshot?'<br>NIP. '+esc(p.nip_snapshot):'')+'</div>';
   };
-  const d=s.data,r=review.data;
-  const labels={sesuai:'Sesuai',tidak_sesuai:'Tidak sesuai',perlu_dilengkapi:'Perlu dilengkapi',tidak_diperiksa:'Tidak diperiksa',belum_diperiksa:'Belum diperiksa'};
-  const rows=(Array.isArray(r.hasil_reviu)?r.hasil_reviu:[]).map((x,i)=>'<tr><td>'+(i+1)+'</td><td>'+esc(x.judul)+'<br><small>—</small></td><td>'+esc(labels[x.status]||x.status)+'</td><td>'+esc(x.catatan||'')+'</td></tr>').join('');
-  return '<!doctype html><html><head><meta charset="utf-8"><title>Berita Acara Reviu '+esc(d.nama_paket)+'</title><style>@page{size:A4;margin:0}*{box-sizing:border-box}html,body{margin:0;padding:0;background:#fff;color:#111}body{font-family:"Times New Roman",serif;font-size:11pt;line-height:1.2}.page{width:210mm;min-height:297mm;margin:0 auto;padding:12mm 17mm 14mm;page-break-after:always;position:relative;background:#fff}h2{text-align:center;font-size:14pt;margin:0 0 10mm}.data-table{width:100%;table-layout:fixed;border-collapse:collapse;font-size:10pt;margin:5mm 0 10mm}.data-table th,.data-table td{border:1px solid #333;padding:3mm;vertical-align:top;overflow-wrap:anywhere}.data-table th{text-align:center}.sign{display:flex;justify-content:space-between;gap:18mm;text-align:center;margin:16mm 0 0;break-inside:avoid}.signature-cell{width:50%;font-size:10pt;line-height:1.2}.signature-role{min-height:8mm}.signature-space{height:27mm;display:flex;align-items:center;justify-content:center}.signature-space img{max-width:48mm;max-height:25mm;object-fit:contain}</style></head><body><section class="page"><h2>BERITA ACARA REVIU</h2><p>Tanggal reviu: '+esc(r.tanggal_reviu)+'</p><table class="data-table"><tr><th style="width:8%">No.</th><th style="width:39%">Aspek yang direviu</th><th style="width:20%">Hasil</th><th>Catatan pemeriksaan</th></tr>'+rows+'</table><h3>Rekomendasi</h3><p>'+esc(r.rekomendasi)+'</p><h3>Catatan</h3><p>'+esc(r.catatan)+'</p><div class="sign">'+signatureBlock('PPTK')+signatureBlock('PPK')+'</div></section></body></html>';
+  const date=v=>{if(!v)return '—';const x=new Date(v+'T00:00:00');return Number.isNaN(x.getTime())?esc(v):x.toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'});};
+  const category=(title)=>'<tr class="section-row"><th colspan="4">'+title+'</th></tr>';
+  const reviewRow=(no,title,question,response)=>'<tr><td class="center">'+no+'</td><td>'+title+'</td><td>'+question+'</td><td>'+response+'</td></tr>';
+  const contract=d.bentuk_kontrak||'Surat Pesanan';
+  const method=d.metode_pengadaan||'E-purchasing';
+  const rows=[
+    category('SPESIFIKASI TEKNIS'),
+    category('REVIU UMUM SPESIFIKASI TEKNIS'),
+    reviewRow('1','Spesifikasi Teknis','Spesifikasi teknis sudah terdefinisikan dengan jelas? Mohon tanggapannya','Sudah sesuai dengan kebutuhan paket.'),
+    reviewRow('2','Sumber informasi dalam penetapan spesifikasi teknis','Mohon dijelaskan sumber informasi apa saja yang digunakan dalam penetapan spesifikasi teknis','Mengacu pada surat permohonan pesanan dan kebutuhan yang telah ditetapkan.'),
+    reviewRow('3','Barang ber-TKDN dan PDN','Apakah saat perencanaan pengadaan PPK telah menyusun spesifikasi yang mengacu kepada PDN dan mengutamakan produk ber-TKDN?','Mengutamakan Produk Dalam Negeri dan produk ber-TKDN sesuai ketersediaan pada katalog.'),
+    reviewRow('4','Surat pernyataan teknis (apabila diperlukan)','Adakah surat pernyataan teknis yang dibutuhkan pada paket ini?','Tidak diperlukan, kecuali dipersyaratkan sesuai karakteristik barang.'),
+    reviewRow('5','Tingkat ketersediaan barang dan penyedia','Bagaimana potensi ketersediaan barang dan penyedia yang dibutuhkan pada paket ini?','Ketersediaan barang dan penyedia ditelusuri melalui Katalog Elektronik.'),
+    category('REVIU SPESIFIKASI TEKNIS'),
+    reviewRow('6','Kesesuaian ketentuan','Reviu spesifikasi teknis mengacu pada ketentuan pengadaan yang berlaku.','Sesuai dengan Perlem LKPP No. 2 Tahun 2026 dan Kepka LKPP No. 122 Tahun 2022 sebagaimana dicantumkan dalam template.'),
+    category('HARGA PERKIRAAN SENDIRI'),
+    category('REVIU UMUM HPS'),
+    reviewRow('7','Nilai HPS (digunakan jika HPS > Rp100 juta)','Apakah HPS telah cukup dan sesuai dengan spesifikasi teknis dan ruang lingkup pekerjaan?',Number(d.nilai_hps||0)>100000000?rp(d.nilai_hps):'Nilai paket di bawah Rp100.000.000,00.'),
+    reviewRow('8','Dasar penyusunan HPS','Apakah HPS disusun berdasarkan RAB perencanaan, informasi pasar terkini, dan/atau pembanding pekerjaan sejenis?','Mengacu pada dokumen perencanaan dan informasi/pembanding harga yang tersedia.'),
+    reviewRow('9','Ketersediaan anggaran','Apakah paket ini sudah tersedia pada DPA TA 2026 revisi terakhir?',''+(d.nilai_pagu?'Sudah, sesuai data paket yang diinput.':'Perlu dikonfirmasi pada DPA TA 2026 revisi terakhir.')),
+    reviewRow('10','Pencatatan SIRUP','Apakah paket ini sudah terdaftar dan diumumkan pada SIRUP? Mohon disebutkan ID RUP.',''+(d.kode_rup?'Sudah. ID RUP: '+esc(d.kode_rup):'Perlu dilengkapi ID RUP.')),
+    reviewRow('11','Waktu pemanfaatan','Apakah proses pengadaan dapat selesai sesuai rencana penggunaan/pemanfaatan barang/jasa?','Diperkirakan dapat diselesaikan sesuai rencana penggunaan/pemanfaatan barang.'),
+    reviewRow('12','Harga pembanding','Apakah ada harga pembanding untuk produk yang sama?',''+(vendors.length?'Ada, berdasarkan referensi penyedia yang dicatat pada dokumen.':'Perlu dilengkapi bukti harga pembanding.')),
+    reviewRow('13','Tempat tujuan akhir','Mohon klarifikasi tempat tujuan akhir pengiriman barang.',''+esc(d.tujuan_pengiriman||d.alamat_opd_snapshot)),
+    reviewRow('14','Pembayaran','Mohon diisikan metode pembayaran seperti pada rancangan kontrak.',''+esc(d.metode_pembayaran||'Pembayaran sekaligus setelah barang diterima dan diperiksa, sesuai ketentuan kontrak.')),
+    category('RANCANGAN KONTRAK'),
+    reviewRow('15','Bentuk kontrak','Mohon klarifikasi bentuk kontrak paket ini.',''+esc(contract)),
+    category('PERSIAPAN PEMILIHAN OLEH PEJABAT PENGADAAN'),
+    reviewRow('16','Penetapan metode pemilihan penyedia','Ditetapkan oleh Pejabat Pengadaan dengan diketahui PPK.',''+esc(method))
+  ].join('');
+  const productRows=goods.map((x,i)=>'<tr><td class="center">'+(i+1)+'</td><td><b>'+esc(x.nama_barang)+'</b><br><span class="muted">Spesifikasi: '+esc(x.spesifikasi||'—')+'</span>'+(x.foto_signed_url?'<div class="product-photo"><img src="'+esc(x.foto_signed_url)+'" alt="Produk '+esc(x.nama_barang)+'"></div>':'')+'</td></tr>').join('');
+  const vendorRows=vendors.map((v,i)=>{let info={};try{info=JSON.parse(v.keterangan||'{}')}catch{}return '<tr><td class="center">'+(i+1)+'</td><td><b>'+esc(v.nama_penyedia)+'</b><br>Alamat/lokasi: '+esc(info.lokasi||v.alamat||'—')+'<br>Link produk: '+(info.link_produk?'<a href="'+esc(info.link_produk)+'">'+esc(info.link_produk)+'</a>':'—')+'</td></tr>'}).join('');
+  const meta=[
+    ['Nomor',d.nomor_surat||'—'],
+    ['Tanggal',date(r.tanggal_reviu||d.tanggal_surat)],
+    ['Nama Paket',d.nama_paket],
+    ['OPD',d.nama_opd_snapshot],
+    ['Alamat OPD',d.alamat_opd_snapshot],
+    ['Kode RUP',d.kode_rup],
+    ['Nilai HPS',rp(d.nilai_hps)]
+  ].map(x=>'<tr><th>'+esc(x[0])+'</th><td>'+esc(x[1])+'</td></tr>').join('');
+  const extra=Array.isArray(r.hasil_reviu)?r.hasil_reviu:[];
+  const recommendation=r.rekomendasi||'Dokumen persiapan pengadaan dapat dilanjutkan sesuai hasil reviu dan pemenuhan ketentuan yang berlaku.';
+  const notes=r.catatan||'—';
+  return '<!doctype html><html><head><meta charset="utf-8"><title>Berita Acara Reviu '+esc(d.nama_paket)+'</title><style>@page{size:A4;margin:0}*{box-sizing:border-box}html,body{margin:0;padding:0;background:#fff;color:#17243a}body{font-family:"Times New Roman",serif;font-size:10pt;line-height:1.18}.page{width:210mm;min-height:297mm;margin:0 auto;padding:13mm 16mm 14mm;page-break-after:always;break-after:page;position:relative;background:#fff;overflow:hidden}.page:last-child{page-break-after:auto;break-after:auto}.doc-title{text-align:center;font-size:14pt;line-height:1.25;font-weight:bold;color:#17365d;margin:0 0 7mm}.meta{width:100%;border-collapse:collapse;margin:0 0 5mm;font-size:10pt}.meta th,.meta td{border:0;padding:1.2mm 1mm;text-align:left;vertical-align:top}.meta th{width:24%;font-weight:normal}.meta th:after{content:" :"}.data-table{width:100%;table-layout:fixed;border-collapse:collapse;font-size:8.5pt;margin:3mm 0 5mm}.data-table th,.data-table td{border:1px solid #52647a;padding:2mm;vertical-align:top;overflow-wrap:anywhere}.data-table thead th{background:#17365d;color:#fff;text-align:center;font-weight:bold}.data-table .section-row th{background:#dce6f1;color:#17365d;text-align:left;font-weight:bold}.center{text-align:center}.muted{color:#52647a}.product-photo{margin:2mm auto 0;text-align:left}.product-photo img{display:block;max-width:68mm;max-height:48mm;object-fit:contain;object-position:left center}.sign{display:flex;justify-content:space-between;gap:16mm;text-align:center;margin:13mm 0 0;break-inside:avoid}.signature-cell{width:50%;font-size:10pt;line-height:1.2}.signature-role{min-height:8mm}.signature-space{width:48mm;height:27mm;margin:0 auto;display:flex;align-items:center;justify-content:center;overflow:hidden}.signature-space img{display:block!important;width:48mm!important;height:25mm!important;max-width:none!important;max-height:none!important;object-fit:contain!important;object-position:center;margin:0 auto}.small-note{font-size:9pt}.avoid-break{break-inside:avoid}h3{font-size:11pt;color:#17365d;margin:5mm 0 2mm}@media screen{body{background:#e8ebef}.page{margin:10mm auto;box-shadow:0 2px 12px #0002}}@media print{body{background:#fff}.page{margin:0;box-shadow:none}}</style></head><body>'+
+  '<section class="page"><h1 class="doc-title">BERITA ACARA REVIU DOKUMEN PERSIAPAN PENGADAAN E-PURCHASING</h1><table class="meta">'+meta+'</table><table class="data-table"><colgroup><col style="width:6%"><col style="width:23%"><col style="width:43%"><col style="width:28%"></colgroup><thead><tr><th>No.</th><th>Tinjauan</th><th>Hasil rekomendasi Pejabat Pengadaan</th><th>Tanggapan</th></tr></thead><tbody>'+rows+'</tbody></table><h3>Rekomendasi Hasil Reviu</h3><p>'+esc(recommendation)+'</p><h3>Catatan</h3><p>'+esc(notes)+'</p></section>'+
+  '<section class="page"><h2 class="doc-title">PRODUK PADA KATALOG SAAT DILAKUKAN REVIU</h2><table class="data-table"><colgroup><col style="width:9%"><col style="width:91%"></colgroup><thead><tr><th>No.</th><th>Hal-hal Pembahasan / Catatan dan Hasil Pembahasan</th></tr></thead><tbody><tr><td class="center">1</td><td><b>Nama dan Identitas Pelaku Usaha</b><br>Nama: '+esc(vendors[0]?.nama_penyedia||'—')+'<br>Alamat: '+esc((()=>{try{return JSON.parse(vendors[0]?.keterangan||'{}').lokasi||vendors[0]?.alamat||'—'}catch{return '—'}})())+'</td></tr><tr><td class="center">2</td><td><b>Produk</b><table class="data-table"><tbody>'+productRows+'</tbody></table></td></tr><tr><td class="center">3</td><td><b>Hasil pemeriksaan Status Daftar Hitam Penyedia</b><br>Tidak masuk dalam Daftar Hitam<br><br><span class="muted">Tangkapan layar: dapat dilampirkan pada dokumen pendukung.</span></td></tr><tr><td class="center">4</td><td><b>Hasil verifikasi data kualifikasi Pelaku Usaha pada aplikasi SIKaP</b><br>Memenuhi<br><br><span class="muted">Tangkapan layar: dapat dilampirkan pada dokumen pendukung.</span></td></tr><tr><td class="center">5</td><td><b>Pendokumentasian</b><br><span class="muted">Tangkapan layar / bukti pendokumentasian dapat dilampirkan pada dokumen pendukung.</span></td></tr><tr><td class="center">6</td><td><b>Lain-lain</b><br>—</td></tr></tbody></table><p class="small-note">Catatan: status daftar hitam dan verifikasi SIKaP pada template merupakan isian yang harus dipastikan berdasarkan hasil pemeriksaan aktual sebelum dokumen ditandatangani.</p><div class="sign">'+signatureBlock('PPK')+signatureBlock('PPTK')+'</div></section></body></html>';
 }
 export async function openReviewPrint(db,id){
   const html=await buildReviewHtml(db,id),w=window.open('','_blank');
