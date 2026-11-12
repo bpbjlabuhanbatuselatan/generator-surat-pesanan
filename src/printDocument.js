@@ -1,4 +1,4 @@
-export async function openProcurementPrint(db, id) {
+export async function buildProcurementHtml(db, id) {
   const [s, items, providers, refs, docs, officials, review] = await Promise.all([
     db.from('surat').select('*').eq('id', id).single(),
     db.from('detail_barang').select('*').eq('surat_id', id).order('nomor_urut'),
@@ -52,6 +52,11 @@ export async function openProcurementPrint(db, id) {
   '<section class="page"><h2>PENGUMPULAN REFERENSI HARGA</h2><table><tr><th>No.</th><th>Nama Barang</th><th>Harga Satuan</th><th>Harga Pembanding</th><th>Harga e-Katalog</th><th>Kesesuaian</th><th>Prioritas</th></tr>'+priceRows+'</table><p class="note">Data pada tabel merupakan referensi yang diinput ke aplikasi. Verifikasi, negosiasi, dan penetapan akhir dilakukan oleh pejabat berwenang.</p><div class="sign">'+signatureBlock('PPTK')+''+signatureBlock('PPK')+'</div></section>'+
   '<section class="page"><h2>BERITA ACARA REVIU</h2><p>Tanggal reviu: '+esc(reviewData?.tanggal_reviu)+'</p><table><tr><th>No.</th><th>Aspek yang direviu</th><th>Hasil</th><th>Catatan pemeriksaan</th></tr>'+reviewRows+'</table><h3>Rekomendasi</h3><p>'+esc(reviewData?.rekomendasi)+'</p><h3>Catatan</h3><p>'+esc(reviewData?.catatan)+'</p><div class="sign">'+signatureBlock('PPTK')+''+signatureBlock('PPK')+'</div></section>'+
   '<section><h2>DAFTAR DOKUMEN PENDUKUNG</h2><table><tr><th>No.</th><th>Kategori</th><th>Nama File</th><th>Jenis File</th><th>Bukti</th></tr>'+fileRows+'</table><p class="note">Tautan lampiran bersifat sementara dan memerlukan koneksi internet saat dibuka. Pastikan seluruh bukti telah diverifikasi sebelum dokumen ditetapkan final.</p><h3>Catatan</h3><p>'+esc(d.catatan)+'</p></section></body></html>';
+  return html;
+}
+
+export async function openProcurementPrint(db, id) {
+  const html = await buildProcurementHtml(db, id);
   const w = window.open('', '_blank');
   if (!w) throw new Error('Izinkan pop-up browser untuk mencetak dokumen.');
   w.document.open(); w.document.write(html); w.document.close();
