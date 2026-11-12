@@ -1,7 +1,6 @@
 import {useEffect,useMemo,useState} from 'react';
 import {createClient} from '@supabase/supabase-js';
-import {openProcurementPrint,openReviewPrint,buildProcurementHtml} from './printDocument';
-import html2pdf from 'html2pdf.js';
+import {openProcurementPrint,openReviewPrint} from './printDocument';
 import {FileText,FilePlus2,FolderOpen,LayoutDashboard,LogOut,Search,Save,ChevronRight,Building2,Package,AlertCircle,Plus,Trash2,Truck,Calculator,ArrowLeft,CheckCircle2} from 'lucide-react';
 const url=import.meta.env.VITE_SUPABASE_URL,key=import.meta.env.VITE_SUPABASE_ANON_KEY,db=url&&key?createClient(url,key):null;
 const fmt=n=>new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(Number(n||0));
@@ -17,7 +16,7 @@ const blankForm=()=>({nama_paket:'',nama_opd_snapshot:'',alamat_opd_snapshot:'',
 function Login({onLogin,error,busy}){const [email,E]=useState(''),[password,P]=useState('');return <main className="login"><form className="login-card" onSubmit={e=>{e.preventDefault();onLogin(email,password)}}><div className="logo"><FileText size={28}/></div><small>PORTAL PEJABAT PENGADAAN</small><h1>Generator Surat <em>Pesanan PBJ</em></h1><p>Masuk untuk membuat dan mengelola dokumen pengadaan.</p><label>Email<input type="email" value={email} onChange={e=>E(e.target.value)} required/></label><label>Password<input type="password" value={password} onChange={e=>P(e.target.value)} required/></label>{error&&<div className="error">{error}</div>}<button className="primary" disabled={busy}>{busy?'Memproses…':'Masuk'}</button></form></main>}
 function Field({label,value,set,type='text',required=false,placeholder='',wide=false}){return <label className={'field'+(wide?' wide':'')}>{label}<input type={type} value={value??''} onChange={e=>set(e.target.value)} required={required} placeholder={placeholder}/></label>}
 function Area({label,value,set,wide=false}){return <label className={'field'+(wide?' wide':'')}>{label}<textarea rows="2" value={value??''} onChange={e=>set(e.target.value)}/></label>}
-function Table({rows,onEdit,onExport,onReview,onArchive,onHistory,onDelete}){return !rows.length?<div className="empty"><FolderOpen/><b>Belum ada surat</b><span>Surat yang dibuat akan tampil di sini.</span></div>:<div className="table-wrap"><table><thead><tr><th>Nama paket</th><th>OPD</th><th>Kode RUP</th><th>Tanggal</th><th>Nilai pagu</th><th>Status</th><th>Dokumen</th><th>Hapus</th></tr></thead><tbody>{rows.map(x=><tr key={x.id}><td><b>{x.nama_paket}</b><small>{x.nomor_surat||'Nomor surat belum diisi'}</small></td><td>{x.nama_opd_snapshot||'—'}</td><td>{x.kode_rup||'—'}</td><td>{x.tanggal_surat||'—'}</td><td>{fmt(x.nilai_pagu)}</td><td><span className="badge">{x.status}</span></td><td><div className="table-actions"><button className="outline-btn small-btn" onClick={()=>onEdit?.(x.id)}>Edit</button><button className="outline-btn small-btn" onClick={()=>onExport?.(x.id)}>Cetak Surat</button><button className="outline-btn small-btn" onClick={()=>onReview?.(x.id)}>Cetak Reviu</button><button className="outline-btn small-btn" onClick={()=>onArchive?.(x.id)}>Arsipkan PDF</button><button className="outline-btn small-btn" onClick={()=>onHistory?.(x.id)}>Lihat arsip</button></div></td><td><button className="outline-btn small-btn danger-btn" disabled={!onDelete} onClick={()=>onDelete?.(x)}>Hapus</button></td></tr>)}</tbody></table></div>}
+function Table({rows,onEdit,onExport,onReview,onDelete}){return !rows.length?<div className="empty"><FolderOpen/><b>Belum ada surat</b><span>Surat yang dibuat akan tampil di sini.</span></div>:<div className="table-wrap"><table><thead><tr><th>Nama paket</th><th>OPD</th><th>Kode RUP</th><th>Tanggal</th><th>Nilai pagu</th><th>Status</th><th>Dokumen</th><th>Hapus</th></tr></thead><tbody>{rows.map(x=><tr key={x.id}><td><b>{x.nama_paket}</b><small>{x.nomor_surat||'Nomor surat belum diisi'}</small></td><td>{x.nama_opd_snapshot||'—'}</td><td>{x.kode_rup||'—'}</td><td>{x.tanggal_surat||'—'}</td><td>{fmt(x.nilai_pagu)}</td><td><span className="badge">{x.status}</span></td><td><div className="table-actions"><button className="outline-btn small-btn" onClick={()=>onEdit?.(x.id)}>Edit</button><button className="outline-btn small-btn" onClick={()=>onExport?.(x.id)}>Cetak Surat</button><button className="outline-btn small-btn" onClick={()=>onReview?.(x.id)}>Cetak Reviu</button></div></td><td><button className="outline-btn small-btn danger-btn" disabled={!onDelete} onClick={()=>onDelete?.(x)}>Hapus</button></td></tr>)}</tbody></table></div>}
 function App(){
  const [session,S]=useState(null),[ready,R]=useState(false),[busy,B]=useState(false),[error,Err]=useState(''),[notice,N]=useState(''),[page,Page]=useState('home'),[rows,Rows]=useState([]),[search,Q]=useState(''),[formTab,FormTab]=useState('surat');
  const [editId,EditId]=useState(null),[form,F]=useState(blankForm()),[items,I]=useState([blankItem()]),[providers,V]=useState([blankProvider(),blankProvider(),blankProvider()]),[attachments,A]=useState([]),[officials,O]=useState([blankOfficial('PPTK'),blankOfficial('PPK')]),[kopFile,K]=useState(null),[reviewNumber,RNo]=useState(''),[reviewDate,RD]=useState(new Date().toISOString().slice(0,10)),
@@ -28,21 +27,6 @@ function App(){
  async function login(email,password){B(true);Err('');const {error}=await db.auth.signInWithPassword({email,password});if(error)Err(error.message);B(false)}
  async function exportPdf(id){B(true);Err('');try{await openProcurementPrint(db,id)}catch(e){Err('Gagal menyiapkan dokumen: '+e.message)}finally{B(false)}}
  async function exportReviewPdf(id){B(true);Err('');try{await openReviewPrint(db,id)}catch(e){Err('Gagal menyiapkan Berita Acara Reviu: '+e.message)}finally{B(false)}}
- async function openArchive(id){
-  const archiveWindow=window.open('about:blank','_blank');
-  B(true);Err('');N('');
-  try{
-   if(!archiveWindow)throw new Error('Browser memblokir tab arsip. Izinkan pop-up untuk situs ini lalu coba lagi.');
-   const {data,error}=await db.from('arsip_pdf').select('nama_file,storage_path,versi,dibuat_pada').eq('surat_id',id).order('versi',{ascending:false});
-   if(error)throw error;
-   if(!data?.length){archiveWindow.close();N('Belum ada PDF yang diarsipkan untuk surat ini.');return}
-   const signed=await db.storage.from('arsip-pdf').createSignedUrl(data[0].storage_path,300);
-   if(signed.error)throw signed.error;
-   archiveWindow.location.replace(signed.data.signedUrl);
-   N('Arsip '+data[0].nama_file+' berhasil dibuka.');
-  }catch(e){if(archiveWindow&&!archiveWindow.closed)archiveWindow.close();Err('Gagal membuka arsip: '+(e.message||e))}
-  finally{B(false)}
- }
  async function deleteSurat(row){
   const ok=window.confirm('Hapus surat "'+(row.nama_paket||'')+'" beserta seluruh detail, lampiran, reviu, dan arsip PDF-nya? Tindakan ini tidak dapat dibatalkan.');
   if(!ok)return;
@@ -95,45 +79,6 @@ function App(){
   }catch(e){Err('Gagal memuat surat untuk diedit: '+(e.message||e))}
   finally{B(false)}
  }
- async function archivePdf(id){
-  B(true);Err('');N('');
-  let host=null;
-  let uploadedPath=null;
-  try{
-   const html=await buildProcurementHtml(db,id);
-   const parsed=new DOMParser().parseFromString(html,'text/html');
-   host=document.createElement('div');
-   host.style.position='absolute';host.style.left='0';host.style.top='0';host.style.width='794px';host.style.zIndex='-1';host.style.background='#fff';
-   const style=document.createElement('style');
-   style.textContent=Array.from(parsed.head.querySelectorAll('style')).map(x=>x.textContent).join('\n');
-   host.appendChild(style);
-   const content=document.createElement('div');content.className='pdf-render-root';content.style.width='794px';content.style.background='#fff';content.innerHTML=parsed.body.innerHTML;
-   host.appendChild(content);document.body.appendChild(host);
-   if(document.fonts?.ready)await document.fonts.ready;
-   await Promise.all(Array.from(content.querySelectorAll('img')).map(img=>img.decode?img.decode().catch(()=>{}):new Promise(resolve=>{if(img.complete)return resolve();img.onload=resolve;img.onerror=resolve})));
-   const blob=await html2pdf().set({margin:0,filename:'surat-pesanan.pdf',image:{type:'jpeg',quality:0.96},html2canvas:{scale:2,useCORS:true,logging:false,windowWidth:794,backgroundColor:'#ffffff'},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}}).from(content).outputPdf('blob');
-   if(!blob||blob.size<1000)throw new Error('PDF kosong atau terlalu kecil. Data belum berhasil dirender.');
-   const {data:existing,error:lookupError}=await db.from('arsip_pdf').select('versi').eq('surat_id',id).order('versi',{ascending:false}).limit(1);
-   if(lookupError)throw lookupError;
-   const versi=(existing?.[0]?.versi||0)+1;
-   const filename='surat-pesanan-v'+versi+'-'+id.slice(0,8)+'.pdf';
-   const path=session.user.id+'/'+id+'/'+Date.now()+'-'+filename;
-   const upload=await db.storage.from('arsip-pdf').upload(path,blob,{contentType:'application/pdf',upsert:false});
-   if(upload.error)throw upload.error;
-   uploadedPath=path;
-   const {error:saveError}=await db.from('arsip_pdf').insert({surat_id:id,nama_file:filename,storage_path:path,versi,ukuran_bytes:blob.size});
-   if(saveError){await db.storage.from('arsip-pdf').remove([path]);uploadedPath=null;throw saveError}
-   uploadedPath=null;
-   const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download=filename;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
-   N('PDF versi '+versi+' berhasil disimpan ke arsip dan diunduh.');
-  }catch(e){
-   if(uploadedPath)await db.storage.from('arsip-pdf').remove([uploadedPath]).catch(()=>{});
-   Err('Gagal membuat arsip PDF: '+(e.message||e));
-  }finally{
-   if(host)host.remove();
-   B(false);
-  }
- }
  const set=(k,v)=>F(old=>({...old,[k]:v}));
  const total=useMemo(()=>items.reduce((s,x)=>s+(Number(x.volume)||0)*rupiahNumber(x.harga_satuan),0),[items]);
  const filtered=useMemo(()=>rows.filter(x=>[x.nama_paket,x.nama_opd_snapshot,x.kode_rup,x.nomor_surat].some(v=>(v||'').toLowerCase().includes(search.toLowerCase()))),[rows,search]);
@@ -182,7 +127,7 @@ function App(){
  if(!session)return <Login onLogin={login} error={error||(!db?'Konfigurasi Supabase belum dipasang. Isi VITE_SUPABASE_URL dan VITE_SUPABASE_ANON_KEY.':'')} busy={busy}/>;
  return <div className="shell"><aside><div className="brand"><div className="logo"><FileText/></div><b>Surat Pesanan<small>PBJ • PPBJ</small></b></div><span className="menu-label">MENU UTAMA</span><button className={page==='home'?'nav active':'nav'} onClick={()=>Page('home')}><LayoutDashboard/>Beranda</button><button className={page==='create'?'nav active':'nav'} onClick={()=>{Err('');N('');F(blankForm());I([blankItem()]);V([blankProvider(),blankProvider(),blankProvider()]);A([]);O([blankOfficial('PPTK'),blankOfficial('PPK')]);K(null);Page('create')}}><FilePlus2/>Buat Surat</button><button className={page==='data'?'nav active':'nav'} onClick={()=>{Page('data');load()}}><FolderOpen/>Data Surat <span className="count">{rows.length}</span></button><div className="side-bottom"><span>{session.user.email}</span><button className="nav" onClick={()=>db.auth.signOut()}><LogOut/>Keluar</button></div></aside>
  <main><header><div><small>PORTAL DOKUMEN PENGADAAN</small><h2>{page==='home'?'Beranda':page==='create'?'Buat Surat Pesanan':'Data Surat'}</h2></div><span className="connected">● Terhubung</span></header><section className="content">{error&&<div className="error"><AlertCircle size={16}/>{error}</div>}{notice&&<div className="success"><CheckCircle2 size={16}/>{notice}</div>}
- {page==='home'&&<><div className="hero"><small>PENGELOLAAN DOKUMEN PBJ</small><h1>Generator Surat<br/>Pesanan Pengadaan.</h1><p>Buat dokumen pengadaan, simpan sebagai arsip, dan temukan kembali kapan saja.</p><button className="light-btn" onClick={()=>Page('create')}><FilePlus2/> Mulai Buat Surat <ChevronRight/></button></div><div className="stats"><article><span>Total surat tersimpan</span><b>{rows.length}</b></article><article><span>Draft</span><b>{rows.filter(x=>x.status==='draft').length}</b></article><article><span>Dokumen selesai</span><b>{rows.filter(x=>x.status==='selesai').length}</b></article></div><section className="panel"><h3>Surat terbaru</h3><Table rows={rows.slice(0,5)} onExport={exportPdf} onReview={exportReviewPdf} onArchive={archivePdf} onHistory={openArchive} onDelete={deleteSurat}/></section></>}
+ {page==='home'&&<><div className="hero"><small>PENGELOLAAN DOKUMEN PBJ</small><h1>Generator Surat<br/>Pesanan Pengadaan.</h1><p>Buat dan cetak dokumen pengadaan dalam satu tempat.</p><button className="light-btn" onClick={()=>Page('create')}><FilePlus2/> Mulai Buat Surat <ChevronRight/></button></div><div className="stats"><article><span>Total surat tersimpan</span><b>{rows.length}</b></article><article><span>Draft</span><b>{rows.filter(x=>x.status==='draft').length}</b></article><article><span>Dokumen selesai</span><b>{rows.filter(x=>x.status==='selesai').length}</b></article></div><section className="panel"><h3>Surat terbaru</h3><Table rows={rows.slice(0,5)} onExport={exportPdf} onReview={exportReviewPdf} onDelete={deleteSurat}/></section></>}
  {page==='create'&&<section className="panel"><div className="panel-head"><div><h3>Formulir surat pesanan</h3><p className="muted">Isi data sesuai paket pengadaan. Kolom yang tidak relevan boleh dikosongkan.</p></div><span className="step-tag">DRAFT BARU</span></div><form onSubmit={save}>
  <div className="form-tabs"><button type="button" className={formTab==='surat'?'form-tab active':'form-tab'} onClick={()=>FormTab('surat')}>01 · Surat Pesanan</button><button type="button" className={formTab==='review'?'form-tab active':'form-tab'} onClick={()=>FormTab('review')}>02 · Berita Acara Reviu</button></div>{formTab==='surat'&&<>
  <h4><Building2/> Identitas OPD dan surat</h4><div className="grid"><label className="field">Pilih Dinas / Instansi<select value={form.nama_opd_snapshot} onChange={e=>set('nama_opd_snapshot',e.target.value)} required><option value="">Pilih instansi…</option><option value="DINAS PERPUSTAKAAN DAN ARSIP">Dinas Perpustakaan dan Arsip</option><option value="SATUAN POLISI PAMONG PRAJA DAN PEMADAM KEBAKARAN">Satuan Polisi Pamong Praja dan Pemadam Kebakaran</option><option value="DINAS PENANAMAN MODAL DAN PELAYANAN TERPADU SATU PINTU">Dinas Penanaman Modal dan Pelayanan Terpadu Satu Pintu</option></select></label><Field label="Nomor surat" value={form.nomor_surat} set={v=>set('nomor_surat',v)}/><Field label="Tanggal surat" type="date" value={form.tanggal_surat} set={v=>set('tanggal_surat',v)}/><Field label="Alamat OPD" value={form.alamat_opd_snapshot} set={v=>set('alamat_opd_snapshot',v)}/><label className="field">Kop surat / logo OPD<input type="file" accept="image/*" onChange={e=>K(e.target.files?.[0]||null)}/><small>{kopFile?.name||"Unggah kop instansi ini satu kali. Kop tersimpan untuk pilihan dinas tersebut."}</small></label><Field label="Kode RUP" value={form.kode_rup} set={v=>set('kode_rup',v)}/></div>
@@ -215,6 +160,6 @@ function App(){
  <Area label="Catatan berita acara reviu (opsional)" value={reviewNotes} set={RN} wide/>
  </>}
  <div className="actions"><span>{formTab==='surat'?'Simpan data Surat Pesanan terlebih dahulu, lalu lengkapi tab reviu.':'Simpan perubahan form Surat Pesanan dan Berita Acara Reviu.'}</span><button className="primary" disabled={busy}><Save/> {busy?'Menyimpan…':editId?'Simpan Perubahan':'Simpan Draft'}</button></div></form></section>}
- {page==='data'&&<section className="panel"><div className="panel-head"><div><h3>Arsip surat pesanan</h3><p className="muted">Semua surat yang telah kamu simpan.</p></div><button className="primary" onClick={()=>Page('create')}><FilePlus2/> Buat Surat</button></div><div className="search"><Search/><input value={search} onChange={e=>Q(e.target.value)} placeholder="Cari nama paket, OPD, nomor surat, atau kode RUP…"/></div><Table rows={filtered} onEdit={editSurat} onExport={exportPdf} onReview={exportReviewPdf} onArchive={archivePdf} onDelete={deleteSurat}/></section>}</section><footer>Generator Surat Pesanan PBJ • Sistem pengelolaan dokumen pribadi PPBJ</footer></main></div>
+ {page==='data'&&<section className="panel"><div className="panel-head"><div><h3>Daftar surat</h3><p className="muted">Semua surat pesanan yang telah kamu simpan.</p></div><button className="primary" onClick={()=>Page('create')}><FilePlus2/> Buat Surat</button></div><div className="search"><Search/><input value={search} onChange={e=>Q(e.target.value)} placeholder="Cari nama paket, OPD, nomor surat, atau kode RUP…"/></div><Table rows={filtered} onEdit={editSurat} onExport={exportPdf} onReview={exportReviewPdf} onDelete={deleteSurat}/></section>}</section><footer>Generator Surat Pesanan PBJ • Sistem pengelolaan dokumen pribadi PPBJ</footer></main></div>
 }
 export default App;
