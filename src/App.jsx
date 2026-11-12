@@ -29,16 +29,18 @@ function App(){
  async function exportPdf(id){B(true);Err('');try{await openProcurementPrint(db,id)}catch(e){Err('Gagal menyiapkan dokumen: '+e.message)}finally{B(false)}}
  async function exportReviewPdf(id){B(true);Err('');try{await openReviewPrint(db,id)}catch(e){Err('Gagal menyiapkan Berita Acara Reviu: '+e.message)}finally{B(false)}}
  async function openArchive(id){
-  B(true);Err('');
+  const archiveWindow=window.open('about:blank','_blank');
+  B(true);Err('');N('');
   try{
+   if(!archiveWindow)throw new Error('Browser memblokir tab arsip. Izinkan pop-up untuk situs ini lalu coba lagi.');
    const {data,error}=await db.from('arsip_pdf').select('nama_file,storage_path,versi,dibuat_pada').eq('surat_id',id).order('versi',{ascending:false});
    if(error)throw error;
-   if(!data?.length){N('Belum ada PDF yang diarsipkan untuk surat ini.');return}
+   if(!data?.length){archiveWindow.close();N('Belum ada PDF yang diarsipkan untuk surat ini.');return}
    const signed=await db.storage.from('arsip-pdf').createSignedUrl(data[0].storage_path,300);
    if(signed.error)throw signed.error;
-   window.open(signed.data.signedUrl,'_blank','noopener');
-   N('Membuka arsip '+data[0].nama_file+'.');
-  }catch(e){Err('Gagal membuka arsip: '+e.message)}
+   archiveWindow.location.replace(signed.data.signedUrl);
+   N('Arsip '+data[0].nama_file+' berhasil dibuka.');
+  }catch(e){if(archiveWindow&&!archiveWindow.closed)archiveWindow.close();Err('Gagal membuka arsip: '+(e.message||e))}
   finally{B(false)}
  }
  async function deleteSurat(row){
@@ -95,15 +97,21 @@ function App(){
  }
  async function archivePdf(id){
   B(true);Err('');N('');
+  let host=null;
+  let uploadedPath=null;
   try{
    const html=await buildProcurementHtml(db,id);
    const parsed=new DOMParser().parseFromString(html,'text/html');
-   const host=document.createElement('div');host.style.position='fixed';host.style.left='-20000px';host.style.top='0';host.style.width='794px';host.style.background='#fff';
-   const style=document.createElement('style');style.textContent=Array.from(parsed.head.querySelectorAll('style')).map(x=>x.textContent).join('\n');host.appendChild(style);
-   const content=document.createElement('div');content.className='pdf-render-root';content.style.width='794px';content.innerHTML=parsed.body.innerHTML;host.appendChild(content);document.body.appendChild(host);
-   await Promise.all(Array.from(content.querySelectorAll('img')).map(img=>img.complete?Promise.resolve():new Promise(resolve=>{img.onload=resolve;img.onerror=resolve})));
-   const blob=await html2pdf().set({margin:0,filename:'surat-pesanan.pdf',image:{type:'jpeg',quality:0.96},html2canvas:{scale:2,useCORS:true,logging:false,windowWidth:794},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}}).from(content).outputPdf('blob');
-   host.remove();
+   host=document.createElement('div');
+   host.style.position='absolute';host.style.left='0';host.style.top='0';host.style.width='794px';host.style.zIndex='-1';host.style.background='#fff';
+   const style=document.createElement('style');
+   style.textContent=Array.from(parsed.head.querySelectorAll('style')).map(x=>x.textContent).join('\n');
+   host.appendChild(style);
+   const content=document.createElement('div');content.className='pdf-render-root';content.style.width='794px';content.style.background='#fff';content.innerHTML=parsed.body.innerHTML;
+   host.appendChild(content);document.body.appendChild(host);
+   if(document.fonts?.ready)await document.fonts.ready;
+   await Promise.all(Array.from(content.querySelectorAll('img')).map(img=>img.decode?img.decode().catch(()=>{}):new Promise(resolve=>{if(img.complete)return resolve();img.onload=resolve;img.onerror=resolve})));
+   const blob=await html2pdf().set({margin:0,filename:'surat-pesanan.pdf',image:{type:'jpeg',quality:0.96},html2canvas:{scale:2,useCORS:true,logging:false,windowWidth:794,backgroundColor:'#ffffff'},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}}).from(content).outputPdf('blob');
    if(!blob||blob.size<1000)throw new Error('PDF kosong atau terlalu kecil. Data belum berhasil dirender.');
    const {data:existing,error:lookupError}=await db.from('arsip_pdf').select('versi').eq('surat_id',id).order('versi',{ascending:false}).limit(1);
    if(lookupError)throw lookupError;
@@ -112,12 +120,19 @@ function App(){
    const path=session.user.id+'/'+id+'/'+Date.now()+'-'+filename;
    const upload=await db.storage.from('arsip-pdf').upload(path,blob,{contentType:'application/pdf',upsert:false});
    if(upload.error)throw upload.error;
+   uploadedPath=path;
    const {error:saveError}=await db.from('arsip_pdf').insert({surat_id:id,nama_file:filename,storage_path:path,versi,ukuran_bytes:blob.size});
-   if(saveError){await db.storage.from('arsip-pdf').remove([path]);throw saveError}
-   const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download=filename;document.body.appendChild(link);link.click();link.remove();URL.revokeObjectURL(url);
+   if(saveError){await db.storage.from('arsip-pdf').remove([path]);uploadedPath=null;throw saveError}
+   uploadedPath=null;
+   const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download=filename;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
    N('PDF versi '+versi+' berhasil disimpan ke arsip dan diunduh.');
-  }catch(e){Err('Gagal membuat arsip PDF: '+(e.message||e))}
-  finally{B(false)}
+  }catch(e){
+   if(uploadedPath)await db.storage.from('arsip-pdf').remove([uploadedPath]).catch(()=>{});
+   Err('Gagal membuat arsip PDF: '+(e.message||e));
+  }finally{
+   if(host)host.remove();
+   B(false);
+  }
  }
  const set=(k,v)=>F(old=>({...old,[k]:v}));
  const total=useMemo(()=>items.reduce((s,x)=>s+(Number(x.volume)||0)*rupiahNumber(x.harga_satuan),0),[items]);
