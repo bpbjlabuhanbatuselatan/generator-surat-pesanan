@@ -133,7 +133,7 @@ function App(){
   const payload={...form,opd_id:opdId,nilai_pagu:form.nilai_pagu===''?null:rupiahNumber(form.nilai_pagu),nilai_hps:form.nilai_hps===''?null:rupiahNumber(form.nilai_hps)};
   let letterId=editId;
   if(editId){const {error}=await db.from('surat').update(payload).eq('id',editId);if(error){Err(error.message);B(false);return}}
-  else{const {data:letter,error}=await db.from('surat').insert(payload).select('id').single();if(error){Err(error.message);B(false);return}letterId=letterId}
+  else{const {data:letter,error}=await db.from('surat').insert(payload).select('id').single();if(error){Err(error.message);B(false);return}letterId=letter.id}
   if(editId){for(const table of ['dokumen_pendukung','referensi_harga','reviu','surat_pejabat','penyedia','detail_barang']){const {error}=await db.from(table).delete().eq('surat_id',letterId);if(error){Err('Gagal menyiapkan pembaruan '+table+': '+error.message);B(false);return}}}
   const chosen=items.filter(x=>x.nama_barang.trim());
   const goods=[];
