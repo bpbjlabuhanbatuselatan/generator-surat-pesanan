@@ -1,41 +1,41 @@
 # Generator Surat Pesanan PBJ
 
-A dedicated application for preparing, reviewing, generating, and archiving procurement order documents (Surat Pesanan PBJ).
+A private, single-user application for preparing, generating, and archiving procurement order documents.
 
 ## Project boundaries
 
-- This is a standalone project.
-- Supabase project: `generator-dokumen-pbj` (`cqjlauziuceqbxcarsvs`, Singapore).
-- No dependency on, migration from, or modification of any previous Supabase project.
-- Do not reuse credentials, database objects, storage buckets, RPCs, or application code from unrelated projects without explicit approval.
+- Dedicated Supabase project: `generator-dokumen-pbj` (`cqjlauziuceqbxcarsvs`, Singapore).
+- Dedicated GitHub repository: `bpbjlabuhanbatuselatan/generator-surat-pesanan`.
+- No dependency on, migration from, or modification of previous Supabase projects.
+- One PPBJ login. No OPD accounts and no additional admin roles.
+- Main application areas: **Buat Surat** and **Data Surat**.
 
-## Intended workflow
-
-1. OPD submits a procurement document request through a dedicated form link.
-2. PPBJ reviews the submission and supporting documents.
-3. PPBJ completes procurement data, product details, supplier/price comparison, and review information.
-4. The application assembles the agreed document sections into a single PDF.
-5. Final PDFs are archived and searchable.
-
-## Initial implementation status
+## Current implementation
 
 - [x] Dedicated Supabase project created and verified healthy.
-- [x] Dedicated GitHub repository connected and verified.
-- [x] Confirmed the new Supabase project's `public` schema has no tables yet.
-- [x] Confirmed the new Supabase project has no Edge Functions yet.
-- [ ] Confirm final form fields and document-generation rules.
-- [ ] Design database schema and Row Level Security policies.
-- [ ] Implement authentication and OPD submission workflow.
-- [ ] Implement document assembly and PDF export.
-- [ ] Test the complete workflow before production use.
+- [x] Ten core database tables created with RLS enabled.
+- [x] Five private storage buckets created: kop-surat, tanda-tangan, foto-produk, dokumen-pendukung, arsip-pdf.
+- [x] Owner-scoped row policies and same-owner relational constraints.
+- [x] Vite + React application foundation.
+- [x] Supabase email/password login screen.
+- [x] Initial dashboard, package identity form, draft saving, and searchable archive list.
+- [ ] Add item rows, providers, price references, review form, and document uploads.
+- [ ] Implement Word-template-faithful PDF generation and pagination.
+- [ ] Configure the first PPBJ login and application environment.
+- [ ] Run build, integration, and end-to-end tests.
 
-## Security rules
+## Local development
 
-- Never commit Supabase secret/service-role keys, passwords, or private credentials.
-- Browser code may use only the project's publishable key (or legacy anon key where applicable), protected by appropriate RLS policies.
-- All exposed database tables must have reviewed RLS policies.
-- Keep this application isolated from other projects.
+1. Install Node.js (LTS).
+2. Run `npm install`.
+3. Copy `.env.example` to `.env.local`.
+4. Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` using the new project's API settings. Use only the publishable/anon key in browser code; never use `service_role`.
+5. Run `npm run dev`; create a production bundle with `npm run build`.
 
-## Status
+## Security
 
-Planning and foundation setup. No database tables or application features have been deployed yet.
+- Public sign-up should remain disabled; create/invite the single PPBJ user from Supabase Authentication.
+- Browser access uses only the publishable/anon key and relies on RLS.
+- Storage buckets are private. Upload paths must begin with the authenticated user's UUID.
+- Never commit passwords, service-role keys, or other secrets.
+- Keep this application isolated from all unrelated projects.
