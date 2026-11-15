@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 720">
+<circle cx="360" cy="360" r="350" fill="#fff" stroke="#111" stroke-width="10"/>
+<circle cx="360" cy="360" r="328" fill="none" stroke="#111" stroke-width="7"/>
+<defs><path id="top" d="M 95,350 A 265,265 0 0,1 625,350"/><path id="bottom" d="M 625,390 A 265,265 0 0,1 95,390"/></defs>
+<text font-family="Arial,sans-serif" font-size="59" font-weight="900" letter-spacing="2" fill="#050505"><textPath href="#top" startOffset="50%" text-anchor="middle">KABUPATEN</textPath></text>
+<text font-family="Arial,sans-serif" font-size="49" font-weight="900" letter-spacing="1" fill="#050505"><textPath href="#bottom" startOffset="50%" text-anchor="middle">LABUHANBATU SELATAN</textPath></text>
+<circle cx="360" cy="360" r="222" fill="#ed1c24"/>
+<path d="M315 225 C255 245 218 301 222 367 C228 450 294 502 370 490 C437 479 488 425 490 358 C460 386 423 399 389 388 C363 380 343 358 339 329 C333 289 353 254 399 229 C370 215 342 216 315 225Z" fill="#fff"/>
+<circle cx="354" cy="361" r="52" fill="#ed1c24"/>
+</svg>
