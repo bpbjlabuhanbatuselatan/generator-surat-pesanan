@@ -240,21 +240,18 @@ export async function openProcurementPrint(db, id) {
 }
 
 export async function openAllDocumentsPrint(db,id){
-  // Build each document with its own original styles, then print the three documents
-  // together in the required order: Surat Pesanan, Koordinasi, Reviu.
+  // Gabungkan tiga dokumen dalam urutan tetap. Setiap iframe mengikuti tinggi
+  // konten aslinya agar tidak terpotong pada tinggi satu halaman A4.
   const [surat,koordinasi,reviu]=await Promise.all([
     buildProcurementHtml(db,id),
     buildCoordinationHtml(db,id),
     buildReviewHtml(db,id)
   ]);
   const escapeAttr=value=>String(value).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  const frame=(html,title)=>'<iframe title="'+title+'" srcdoc="'+escapeAttr(html)+'" style="display:block;width:210mm;height:297mm;border:0;margin:0 auto;page-break-after:always;break-after:page"></iframe>';
+  const frame=(html,title)=>'<iframe class="document-frame" title="'+title+'" srcdoc="'+escapeAttr(html)+'" style="display:block;width:210mm;height:100mm;border:0;margin:0;padding:0;overflow:hidden"></iframe>';
   const w=window.open('','_blank');
   if(!w)throw new Error('Izinkan pop-up browser untuk mencetak seluruh dokumen.');
   w.document.open();
-  w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>Cetak Keseluruhan Dokumen PBJ</title><style>@page{size:A4;margin:0}html,body{margin:0;padding:0;background:#fff}iframe{page-break-after:always;break-after:page}iframe:last-child{page-break-after:auto;break-after:auto}@media screen{body{background:#e8ebef}iframe{margin:8mm auto;box-shadow:0 2px 12px #0002}}</style></head><body>'+frame(surat,'Tab 1 - Surat Pesanan')+frame(koordinasi,'Tab 2 - Berita Acara Koordinasi')+frame(reviu,'Tab 3 - Berita Acara Reviu')+'</body></html>');
+  w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>Cetak Keseluruhan Dokumen PBJ</title><style>@page{size:A4 portrait;margin:0}*{box-sizing:border-box}html,body{margin:0;padding:0;width:210mm;background:#fff}body{overflow:visible}.document-frame{display:block;width:210mm!important;border:0!important;margin:0!important;padding:0!important;overflow:hidden!important;break-after:page;page-break-after:always}.document-frame:last-of-type{break-after:auto;page-break-after:auto}@media screen{body{width:100%;background:#e8ebef}.document-frame{margin:8mm auto!important;box-shadow:0 2px 12px #0002}}@media print{html,body{width:210mm!important;margin:0!important;padding:0!important;background:#fff!important}.document-frame{width:210mm!important;margin:0!important;box-shadow:none!important;break-after:page;page-break-after:always}.document-frame:last-of-type{break-after:auto;page-break-after:auto}}</style></head><body>'+frame(surat,'Tab 1 - Surat Pesanan')+frame(koordinasi,'Tab 2 - Berita Acara Koordinasi')+frame(reviu,'Tab 3 - Berita Acara Reviu')+'<script>(function(){const frames=[...document.querySelectorAll(".document-frame")];let done=false;function fit(){if(done)return;const ready=frames.every(f=>{try{return !!f.contentDocument&&f.contentDocument.readyState==="complete"}catch(e){return false}});if(!ready){setTimeout(fit,150);return}frames.forEach(f=>{const d=f.contentDocument;const h=Math.max(d.documentElement.scrollHeight,d.body?d.body.scrollHeight:0);f.style.height=(h+2)+"px";});done=true;setTimeout(()=>{window.focus();window.print()},700)}frames.forEach(f=>f.addEventListener("load",fit,{once:true}));setTimeout(fit,5000)})()</script></body></html>');
   w.document.close();
-  const printAll=()=>{w.focus();w.print();};
-  w.addEventListener('load',()=>w.setTimeout(printAll,1200),{once:true});
-  w.setTimeout(printAll,2500);
 }
