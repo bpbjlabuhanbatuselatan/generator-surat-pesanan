@@ -238,3 +238,23 @@ export async function openProcurementPrint(db, id) {
   w.document.close();
   printDocumentWhenReady(w);
 }
+
+export async function openAllDocumentsPrint(db,id){
+  // Build each document with its own original styles, then print the three documents
+  // together in the required order: Surat Pesanan, Koordinasi, Reviu.
+  const [surat,koordinasi,reviu]=await Promise.all([
+    buildProcurementHtml(db,id),
+    buildCoordinationHtml(db,id),
+    buildReviewHtml(db,id)
+  ]);
+  const escapeAttr=value=>String(value).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const frame=(html,title)=>'<iframe title="'+title+'" srcdoc="'+escapeAttr(html)+'" style="display:block;width:210mm;height:297mm;border:0;margin:0 auto;page-break-after:always;break-after:page"></iframe>';
+  const w=window.open('','_blank');
+  if(!w)throw new Error('Izinkan pop-up browser untuk mencetak seluruh dokumen.');
+  w.document.open();
+  w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>Cetak Keseluruhan Dokumen PBJ</title><style>@page{size:A4;margin:0}html,body{margin:0;padding:0;background:#fff}iframe{page-break-after:always;break-after:page}iframe:last-child{page-break-after:auto;break-after:auto}@media screen{body{background:#e8ebef}iframe{margin:8mm auto;box-shadow:0 2px 12px #0002}}</style></head><body>'+frame(surat,'Tab 1 - Surat Pesanan')+frame(koordinasi,'Tab 2 - Berita Acara Koordinasi')+frame(reviu,'Tab 3 - Berita Acara Reviu')+'</body></html>');
+  w.document.close();
+  const printAll=()=>{w.focus();w.print();};
+  w.addEventListener('load',()=>w.setTimeout(printAll,1200),{once:true});
+  w.setTimeout(printAll,2500);
+}
