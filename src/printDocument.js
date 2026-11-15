@@ -47,8 +47,16 @@ export async function buildProcurementHtml(db, id) {
   const providerSummaryRows = vendors.map((v,i)=>'<tr><td>'+(i+1)+'</td><td>'+esc(v.nama_penyedia)+'</td><td>'+rp(v.reference_detail?.harga_satuan)+'</td><td>'+esc(v.reference_detail?.lokasi||'—')+'</td><td>'+esc(v.reference_detail?.kesesuaian||'Belum diisi')+'</td><td>'+esc(v.reference_detail?.prioritas||'Belum diisi')+'</td></tr>').join('');
   const vendorRows = vendors.map((v,i)=>{const rawLink=String(v.reference_detail?.link_produk||'').trim();let productUrl='';try{const parsed=new URL(rawLink);if(parsed.protocol==='http:'||parsed.protocol==='https:')productUrl=parsed.href;}catch{}const qrUrl=productUrl?'https://api.qrserver.com/v1/create-qr-code/?size=180x180&margin=4&data='+encodeURIComponent(productUrl):'';return '<tr><td>'+(i+1)+'</td><td>'+esc(v.nama_penyedia)+'</td><td>'+esc(v.reference_detail?.lokasi||'—')+'</td><td class="qr-cell">'+(qrUrl?'<img class="product-qr" src="'+qrUrl+'" alt="QR Code produk '+esc(v.nama_penyedia)+'">':'—')+'</td><td class="product-link-cell">'+(productUrl?'<a href="'+esc(productUrl)+'">'+esc(productUrl)+'</a>':'—')+'</td></tr>'}).join('');
  const priceHeaders=vendors.map(v=>'<th>'+esc(v.nama_penyedia||'Penyedia')+'</th>').join('');
- const priceRows=goods.map((g,i)=>{const vals=vendors.map(v=>{const raw=v.reference_detail?.harga_per_barang?.[String(i)]??(goods.length===1?v.reference_detail?.harga_satuan:0);return Number(String(raw??'').replace(/[^0-9]/g,''))||0});const valid=vals.filter(n=>n>0);const avg=valid.length?Math.round(valid.reduce((a,b)=>a+b,0)/valid.length):Number(g.harga_satuan||0);return '<tr><td>'+(i+1)+'</td><td>'+esc(g.nama_barang)+'</td><td class="amount-cell">'+rp(avg)+'</td>'+vals.map(n=>'<td class="amount-cell">'+(n?rp(n):'—')+'</td>').join('')+'<td class="amount-cell">'+rp(avg*Number(g.volume||0))+'</td></tr>'}).join('');
- const priceTable='<h3>D. Perbandingan Harga dan Perhitungan HPS</h3><table class="data-table price-comparison"><tr><th>No.</th><th>Uraian Barang</th><th>HPS Satuan (Rata-rata)</th>'+priceHeaders+'<th>Jumlah HPS</th></tr>'+priceRows+'<tr><th colspan="'+(3+vendors.length)+'">TOTAL HPS</th><th class="amount-cell">'+rp(goods.reduce((sum,g)=>sum+Number(g.harga_satuan||0)*Number(g.volume||0),0))+'</th></tr></table>';
+ const priceCalculations=goods.map((g,i)=>{
+   const vals=vendors.map(v=>{const raw=v.reference_detail?.harga_per_barang?.[String(i)]??(goods.length===1?v.reference_detail?.harga_satuan:0);return Number(String(raw??'').replace(/[^0-9]/g,''))||0});
+   const valid=vals.filter(n=>n>0);
+   const unitHps=valid.length?Math.round(valid.reduce((a,b)=>a+b,0)/valid.length):Number(g.harga_satuan||0);
+   const quantity=Number(g.volume||0);
+   return {vals,unitHps,quantity,lineTotal:unitHps*quantity};
+ });
+ const priceRows=goods.map((g,i)=>{const calc=priceCalculations[i];return '<tr><td>'+(i+1)+'</td><td>'+esc(g.nama_barang)+'</td><td class="amount-cell">'+rp(calc.unitHps)+'</td>'+calc.vals.map(n=>'<td class="amount-cell">'+(n?rp(n):'—')+'</td>').join('')+'<td class="amount-cell">'+rp(calc.lineTotal)+'</td></tr>'}).join('');
+ const totalHps=priceCalculations.reduce((sum,x)=>sum+x.lineTotal,0);
+ const priceTable='<h3>D. Perbandingan Harga dan Perhitungan HPS</h3><table class="data-table price-comparison"><tr><th>No.</th><th>Uraian Barang</th><th>HPS Satuan (Rata-rata)</th>'+priceHeaders+'<th>Jumlah HPS</th></tr>'+priceRows+'<tr><th colspan="'+(3+vendors.length)+'">TOTAL HPS</th><th class="amount-cell">'+rp(totalHps)+'</th></tr></table>';
   const vendorEvidence=vendors.filter(v=>v.reference_photo_url);
   const vendorPhotoPages=[];
   for(let i=0;i<vendorEvidence.length;i+=2){
