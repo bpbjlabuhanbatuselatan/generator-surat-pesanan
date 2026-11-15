@@ -240,18 +240,44 @@ export async function openProcurementPrint(db, id) {
 }
 
 export async function openAllDocumentsPrint(db,id){
-  // Gabungkan tiga dokumen dalam urutan tetap. Setiap iframe mengikuti tinggi
-  // konten aslinya agar tidak terpotong pada tinggi satu halaman A4.
+  // Satu dokumen HTML utuh (tanpa iframe bersarang) agar browser memecah
+  // halaman berdasarkan CSS A4 asli setiap dokumen, bukan memotong iframe.
   const [surat,koordinasi,reviu]=await Promise.all([
     buildProcurementHtml(db,id),
     buildCoordinationHtml(db,id),
     buildReviewHtml(db,id)
   ]);
-  const escapeAttr=value=>String(value).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  const frame=(html,title)=>'<iframe class="document-frame" title="'+title+'" srcdoc="'+escapeAttr(html)+'" style="display:block;width:210mm;height:100mm;border:0;margin:0;padding:0;overflow:hidden"></iframe>';
+  const extract=(html)=>{
+    const styles=[...html.matchAll(/<style[^>]*>([\\s\\S]*?)<\\/style>/gi)].map(x=>x[1]).join("\\n");
+    const body=(html.match(/<body[^>]*>([\\s\\S]*?)<\\/body>/i)||[])[1]||"";
+    return {styles,body};
+  };
+  const docs=[extract(surat),extract(koordinasi),extract(reviu)];
+  const mergedStyles=docs.map(x=>x.styles).join("\\n");
+  const mergedBody=docs.map(x=>x.body).join('\\n<div class="combined-document-break"></div>\\n');
   const w=window.open('','_blank');
   if(!w)throw new Error('Izinkan pop-up browser untuk mencetak seluruh dokumen.');
   w.document.open();
-  w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>Cetak Keseluruhan Dokumen PBJ</title><style>@page{size:A4 portrait;margin:0}*{box-sizing:border-box}html,body{margin:0;padding:0;width:210mm;background:#fff}body{overflow:visible}.document-frame{display:block;width:210mm!important;border:0!important;margin:0!important;padding:0!important;overflow:hidden!important;break-after:page;page-break-after:always}.document-frame:last-of-type{break-after:auto;page-break-after:auto}@media screen{body{width:100%;background:#e8ebef}.document-frame{margin:8mm auto!important;box-shadow:0 2px 12px #0002}}@media print{html,body{width:210mm!important;margin:0!important;padding:0!important;background:#fff!important}.document-frame{width:210mm!important;margin:0!important;box-shadow:none!important;break-after:page;page-break-after:always}.document-frame:last-of-type{break-after:auto;page-break-after:auto}}</style></head><body>'+frame(surat,'Tab 1 - Surat Pesanan')+frame(koordinasi,'Tab 2 - Berita Acara Koordinasi')+frame(reviu,'Tab 3 - Berita Acara Reviu')+'<script>(function(){const frames=[...document.querySelectorAll(".document-frame")];let done=false;function fit(){if(done)return;const ready=frames.every(f=>{try{return !!f.contentDocument&&f.contentDocument.readyState==="complete"}catch(e){return false}});if(!ready){setTimeout(fit,150);return}frames.forEach(f=>{const d=f.contentDocument;const h=Math.max(d.documentElement.scrollHeight,d.body?d.body.scrollHeight:0);f.style.height=(h+2)+"px";});done=true;setTimeout(()=>{window.focus();window.print()},700)}frames.forEach(f=>f.addEventListener("load",fit,{once:true}));setTimeout(fit,5000)})()</script></body></html>');
+  w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>Dokumen Pengadaan Lengkap</title><style>'+mergedStyles+'\\n@page{size:A4 portrait;margin:0}.combined-document-break{display:block;height:0;break-before:page;page-break-before:always}html,body{width:210mm!important;margin:0!important;padding:0!important;background:#fff!important}body{overflow:visible!important}.page{break-after:page;page-break-after:always}.page:last-of-type{break-after:auto;page-break-after:auto}@media print{html,body{width:210mm!important;margin:0!important;padding:0!important}.page{margin:0!important;box-shadow:none!important}}@media screen{body{margin:0 auto!important;background:#e8ebef!important}.page{margin:8mm auto!important;box-shadow:0 2px 12px #0002}}</style></head><body>'+mergedBody+'</body></html>');
   w.document.close();
+  const waitForReady=async()=>{
+    const deadline=Date.now()+30000;
+    while(Date.now()<deadline){
+      try{
+        if(w.document.readyState==='complete'){
+          const pdfReady=w.__pdfAttachmentReady?await w.__pdfAttachmentReady:true;
+          const images=[...w.document.images];
+          const imagesReady=images.every(img=>img.complete&&img.naturalWidth>0);
+          if(pdfReady&&imagesReady){
+            w.focus();
+            w.print();
+            return;
+          }
+        }
+      }catch(e){}
+      await new Promise(resolve=>setTimeout(resolve,250));
+    }
+    throw new Error('Sebagian gambar atau lampiran belum selesai dimuat. Periksa koneksi lalu coba cetak kembali.');
+  };
+  waitForReady().catch(error=>{try{w.alert(error.message)}catch{}});
 }
