@@ -242,64 +242,34 @@ export async function openProcurementPrint(db, id) {
 }
 
 export async function openAllDocumentsPrint(db,id){
-  // Hasilkan PDF A4 langsung dari aplikasi (tanpa dialog Print browser).
-  const [surat,koordinasi,reviu]=await Promise.all([
-    buildProcurementHtml(db,id),
-    buildCoordinationHtml(db,id),
-    buildReviewHtml(db,id)
-  ]);
-  const extract=(html)=>{
-    const styles=[...html.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/gi)].map(x=>x[1]).join("\n");
-    const body=(html.match(/<body[^>]*>([\s\S]*?)<\/body>/i)||[])[1]||"";
-    return {styles,body};
-  };
-  const docs=[extract(surat),extract(koordinasi),extract(reviu)];
-  const mergedStyles=docs.map(x=>x.styles).join("\n");
-  const mergedBody=docs.map(x=>x.body).join('\n<div class="combined-document-break"></div>\n');
-  const title=(surat.match(/<title>([\s\S]*?)<\/title>/i)||[])[1]||'Dokumen Pengadaan';
-  const filename=(title.replace(/<[^>]*>/g,'').replace(/^Dokumen\s*/i,'').replace(/[^a-z0-9-_ ]/gi,'').trim().replace(/\s+/g,'_')||'Dokumen_Pengadaan')+'_Lengkap.pdf';
-  const frame=document.createElement('iframe');
-  frame.setAttribute('aria-hidden','true');
-  frame.style.cssText='position:fixed;left:0;top:0;width:210mm;height:297mm;border:0;visibility:visible;opacity:1;z-index:2147483647;pointer-events:none;background:#fff';
-  const html='<!doctype html><html><head><meta charset="utf-8"><title>'+filename+'</title><style>'+mergedStyles+'\n@page{size:A4 portrait;margin:0}.combined-document-break{height:0;break-before:page;page-break-before:always}html,body{width:210mm!important;margin:0!important;padding:0!important;background:#fff!important}body{overflow:visible!important}.page{break-after:page;page-break-after:always}.page:last-of-type{break-after:auto;page-break-after:auto}@media screen{.page{margin:0 auto!important;box-shadow:none!important}}</style></head><body>'+mergedBody+'</body></html>';
-  const ready=new Promise((resolve,reject)=>{
-    frame.onload=async()=>{
-      try{
-        const w=frame.contentWindow,d=frame.contentDocument;
-        if(w.__pdfAttachmentReady) {
-          const pdfOk=await w.__pdfAttachmentReady;
-          if(!pdfOk)throw new Error('Ada lampiran PDF yang gagal dimuat. Periksa file lampiran dan coba lagi.');
-        }
-        if(d.fonts?.ready)await d.fonts.ready;
-        const images=[...d.images];
-        const imageResults=await Promise.all(images.map(img=>img.complete?Promise.resolve(img.naturalWidth>0):new Promise(resolveImage=>{
-          img.onload=()=>resolveImage(true);img.onerror=()=>resolveImage(false);
-        })));
-        if(imageResults.some(ok=>!ok))throw new Error('Ada foto atau gambar yang gagal dimuat. PDF tidak dibuat agar tidak ada lampiran yang hilang.');
-        resolve({w,d});
-      }catch(error){reject(error)}
-    };
-  });
-  frame.srcdoc=html;
-  document.body.appendChild(frame);
+  // Cetak ketiga dokumen dalam satu jendela browser agar mesin cetak native
+  // yang menangani layout A4; hindari html2canvas yang menghasilkan halaman putih.
+  const w=window.open('','_blank');
+  if(!w)throw new Error('Izinkan pop-up browser untuk mencetak seluruh dokumen.');
   try{
-    const {d}=await ready;
-    const html2pdf=(await import('html2pdf.js')).default;
-    const target=d.body;
-    if(!target || !target.children.length || !target.innerText.trim()) throw new Error('Isi dokumen tidak berhasil dirender. PDF dibatalkan agar tidak menghasilkan file kosong.');
-    const renderedPages=d.querySelectorAll('.page');
-    const visibleContent=[...renderedPages].some(el=>{const r=el.getBoundingClientRect(),s=d.defaultView.getComputedStyle(el);return r.width>0&&r.height>0&&s.display!=='none'&&s.visibility!=='hidden'&&el.innerText.trim().length>0;});
-    if(!renderedPages.length||!visibleContent)throw new Error('Halaman dokumen tidak terlihat pada area render. PDF dibatalkan.');
-    const options={
-      margin:0,
-      filename,
-      image:{type:'jpeg',quality:0.98},
-      html2canvas:{scale:2,useCORS:true,allowTaint:false,backgroundColor:'#ffffff',logging:false,scrollX:0,scrollY:0,windowWidth:Math.ceil(210*96/25.4)},
-      jsPDF:{unit:'mm',format:'a4',orientation:'portrait',compress:true},
-      pagebreak:{mode:['css','legacy'],before:'.combined-document-break',avoid:['.sign','.signature-cell','.attachment-slot','tr']}
+    const [surat,koordinasi,reviu]=await Promise.all([
+      buildProcurementHtml(db,id),
+      buildCoordinationHtml(db,id),
+      buildReviewHtml(db,id)
+    ]);
+    const extract=(html)=>{
+      const styles=[...html.matchAll(/<style[^>]*>([\\s\\S]*?)<\\/style>/gi)].map(x=>x[1]).join("\\n");
+      const body=(html.match(/<body[^>]*>([\\s\\S]*?)<\\/body>/i)||[])[1]||"";
+      return {styles,body};
     };
-    await html2pdf().set(options).from(target).save();
-  }finally{
-    frame.remove();
+    const docs=[extract(surat),extract(koordinasi),extract(reviu)];
+    if(docs.some(x=>!x.body.trim()))throw new Error('Salah satu dokumen tidak memiliki isi. Cetak keseluruhan dibatalkan.');
+    const styles=docs.map(x=>x.styles).join("\\n");
+    const body=docs.map((x,i)=>'<div class="combined-part combined-part-'+(i+1)+'">'+x.body+'</div>').join('<div class="combined-document-break"></div>');
+    const title=(surat.match(/<title>([\\s\\S]*?)<\\/title>/i)||[])[1]||'Dokumen Pengadaan';
+    const filename=(title.replace(/<[^>]*>/g,'').replace(/^Dokumen\\s*/i,'').replace(/[^a-z0-9-_ ]/gi,'').trim().replace(/\\s+/g,'_')||'Dokumen_Pengadaan')+'_Lengkap';
+    const html='<!doctype html><html><head><meta charset="utf-8"><title>'+filename+'</title><style>'+styles+'\\n@page{size:A4 portrait;margin:15mm 15mm 15mm 20mm}html,body{width:auto!important;min-height:0!important;margin:0!important;padding:0!important;background:#fff!important}body{overflow:visible!important}.combined-document-break{display:block;height:0;break-before:page;page-break-before:always}.combined-part{display:block;position:relative}.combined-part .page{break-after:page;page-break-after:always}.combined-part .page:last-child{break-after:auto;page-break-after:auto}@media screen{body{background:#e8ebef!important}.combined-part{background:#fff}.combined-document-break{border-top:1px solid #ddd}}@media print{html,body{background:#fff!important}.combined-part{background:#fff!important}.combined-document-break{border:0}}img{max-width:100%;}table{max-width:100%;}</style></head><body>'+body+'</body></html>';
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
+    printDocumentWhenReady(w);
+  }catch(error){
+    w.close();
+    throw error;
   }
 }
