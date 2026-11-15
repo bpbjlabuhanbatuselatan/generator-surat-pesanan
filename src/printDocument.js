@@ -259,11 +259,42 @@ export async function openAllDocumentsPrint(db,id){
     };
     const docs=[extract(surat),extract(koordinasi),extract(reviu)];
     if(docs.some(x=>!x.body.trim()))throw new Error('Salah satu dokumen tidak memiliki isi. Cetak keseluruhan dibatalkan.');
-    const styles=docs.map(x=>x.styles).join("\n");
+    // Isolasi CSS tiap dokumen agar selector .page/body/table dari satu tab
+    // tidak menimpa layout tab lain saat dicetak bersama.
+    const scopeCss=(css,scope)=>{
+      const parse=(source)=>{
+        let out='',pos=0;
+        while(pos<source.length){
+          const open=source.indexOf('{',pos);
+          if(open<0){out+=source.slice(pos);break;}
+          const head=source.slice(pos,open).trim();
+          let depth=1,k=open+1;
+          while(k<source.length&&depth){if(source[k]==='{')depth++;else if(source[k]==='}')depth--;k++;}
+          const inner=source.slice(open+1,k-1);
+          if(head.startsWith('@page')){/* one shared A4 page rule below */}
+          else if(/^@(media|supports|container|layer)\b/i.test(head))out+=head+'{'+parse(inner)+'}';
+          else if(/^@(font-face|keyframes|-webkit-keyframes|counter-style|property)\b/i.test(head))out+=head+'{'+inner+'}';
+          else{
+            const selectors=head.split(',').map(s=>{
+              const q=s.trim();
+              if(!q)return '';
+              if(/^(html|body|:root)$/i.test(q))return scope;
+              if(/^(html|body|:root)\s+/.test(q))return scope+q.replace(/^(html|body|:root)/,'');
+              return scope+' '+q;
+            }).filter(Boolean).join(',');
+            out+=selectors+'{'+inner+'}';
+          }
+          pos=k;
+        }
+        return out;
+      };
+      return parse(css);
+    };
+    const styles=docs.map((x,i)=>scopeCss(x.styles,'.combined-part-'+(i+1))).join("\n");
     const body=docs.map((x,i)=>'<div class="combined-part combined-part-'+(i+1)+'">'+x.body+'</div>').join('<div class="combined-document-break"></div>');
     const title=(surat.match(/<title>([\s\S]*?)<\/title>/i)||[])[1]||'Dokumen Pengadaan';
     const filename=(title.replace(/<[^>]*>/g,'').replace(/^Dokumen\s*/i,'').replace(/[^a-z0-9-_ ]/gi,'').trim().replace(/\s+/g,'_')||'Dokumen_Pengadaan')+'_Lengkap';
-    const html='<!doctype html><html><head><meta charset="utf-8"><title>'+filename+'</title><style>'+styles+'\n@page{size:A4 portrait;margin:15mm 15mm 15mm 20mm}html,body{width:auto!important;min-height:0!important;margin:0!important;padding:0!important;background:#fff!important}body{overflow:visible!important}.combined-document-break{display:block;height:0;break-before:page;page-break-before:always}.combined-part{display:block;position:relative}.combined-part .page{break-after:page;page-break-after:always}.combined-part .page:last-child{break-after:auto;page-break-after:auto}@media screen{body{background:#e8ebef!important}.combined-part{background:#fff}.combined-document-break{border-top:1px solid #ddd}}@media print{html,body{background:#fff!important}.combined-part{background:#fff!important}.combined-document-break{border:0}}img{max-width:100%;}table{max-width:100%;}</style></head><body>'+body+'</body></html>';
+    const html='<!doctype html><html><head><meta charset="utf-8"><title>'+filename+'</title><style>'+styles+'\n@page{size:A4 portrait;margin:0}html,body{width:auto!important;min-height:0!important;margin:0!important;padding:0!important;background:#fff!important}body{overflow:visible!important}.combined-part-1,.combined-part-2{display:block}.combined-part-3 .page{padding:15mm 15mm 18mm 20mm!important}.combined-document-break{display:block;height:0;break-before:page;page-break-before:always}.combined-part{display:block;position:relative}.combined-part .page{break-after:page;page-break-after:always}.combined-part .page:last-child{break-after:auto;page-break-after:auto}@media screen{body{background:#e8ebef!important}.combined-part{background:#fff}.combined-document-break{border-top:1px solid #ddd}}@media print{html,body{background:#fff!important}.combined-part{background:#fff!important}.combined-document-break{border:0}}img{max-width:100%;}table{max-width:100%;}</style></head><body>'+body+'</body></html>';
     w.document.open();
     w.document.write(html);
     w.document.close();
