@@ -258,7 +258,7 @@ export async function openAllDocumentsPrint(db,id){
   const filename=(title.replace(/<[^>]*>/g,'').replace(/^Dokumen\s*/i,'').replace(/[^a-z0-9-_ ]/gi,'').trim().replace(/\s+/g,'_')||'Dokumen_Pengadaan')+'_Lengkap.pdf';
   const frame=document.createElement('iframe');
   frame.setAttribute('aria-hidden','true');
-  frame.style.cssText='position:fixed;left:0;top:0;width:210mm;height:100vh;border:0;visibility:visible;opacity:1;z-index:-1;pointer-events:none;background:#fff';
+  frame.style.cssText='position:fixed;left:-10000px;top:0;width:210mm;height:100vh;border:0;visibility:visible;opacity:1;z-index:2147483000;pointer-events:none;background:#fff';
   const html='<!doctype html><html><head><meta charset="utf-8"><title>'+filename+'</title><style>'+mergedStyles+'\n@page{size:A4 portrait;margin:0}.combined-document-break{height:0;break-before:page;page-break-before:always}html,body{width:210mm!important;margin:0!important;padding:0!important;background:#fff!important}body{overflow:visible!important}.page{break-after:page;page-break-after:always}.page:last-of-type{break-after:auto;page-break-after:auto}@media screen{.page{margin:0 auto!important;box-shadow:none!important}}</style></head><body>'+mergedBody+'</body></html>';
   const ready=new Promise((resolve,reject)=>{
     frame.onload=async()=>{
@@ -284,6 +284,7 @@ export async function openAllDocumentsPrint(db,id){
     const {d}=await ready;
     const html2pdf=(await import('html2pdf.js')).default;
     const target=d.body;
+    if(!target || !target.children.length || !target.innerText.trim()) throw new Error('Isi dokumen tidak berhasil dirender. PDF dibatalkan agar tidak menghasilkan file kosong.');
     const options={
       margin:0,
       filename,
