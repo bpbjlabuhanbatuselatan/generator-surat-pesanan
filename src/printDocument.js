@@ -10,7 +10,7 @@ export async function buildProcurementHtml(db, id) {
   ]);
   const error = [s, items, providers, refs, docs, officials, review].find(x => x.error);
   if (error) throw error.error;
-  const d = s.data, goods = items.data || [], vendors = providers.data || [], prices = refs.data || [], files = docs.data || [], signers = officials.data || [];
+  const d = s.data, goods = items.data || [], vendors = providers.data || [], prices = refs.data || [], files = (docs.data || []).filter(x=>!String(x.kategori||'').startsWith('Bukti Reviu - ')), signers = officials.data || [];
   let letterheadUrl='';
   if(d.opd_id){
     const {data:opd,error:opdError}=await db.from('opd').select('kop_surat_path').eq('id',d.opd_id).maybeSingle();
