@@ -127,3 +127,23 @@
  .search{max-width:none}
  footer{padding:12px 14px 8px;font-size:9px}
 }
+
+/* Identitas tunggal Kabupaten Labuhanbatu Selatan */
+.brand-identity{display:flex;align-items:center;gap:12px;margin:0 0 18px;min-width:0}
+.labusel-seal{width:76px;height:76px;object-fit:contain;flex:0 0 auto;background:#fff;border-radius:50%;box-shadow:0 5px 18px #06182a25}
+.brand-credit{display:flex;flex-direction:column;gap:4px;min-width:0;color:#183755}
+.brand-credit b{font:800 14px/1.25 Manrope,sans-serif}
+.brand-credit span{font-size:10px;line-height:1.35;color:#60748a}
+.brand-credit small{font-size:9px;color:#a17b39;font-weight:700;letter-spacing:.2px}
+.brand-identity.compact{gap:9px;margin:0;flex-shrink:1}
+.brand-identity.compact .labusel-seal{width:58px;height:58px}
+.brand-identity.compact .brand-credit b{font-size:11px;color:#fff}
+.brand-identity.compact .brand-credit span{font-size:9px;color:#c2d2e3}
+.brand-identity.compact .brand-credit small{font-size:8px;color:#e0bd73}
+.brand{padding:0 4px 30px;gap:0}
+.login-card .brand-identity.compact{margin-bottom:2px}
+.login-card .brand-identity.compact .labusel-seal{width:72px;height:72px}
+.login-card .brand-identity.compact .brand-credit b{font-size:13px;color:#173655}
+.login-card .brand-identity.compact .brand-credit span{font-size:10px;color:#667b90}
+.login-card .brand-identity.compact .brand-credit small{font-size:9px;color:#a17b39}
+@media(max-width:620px){.brand{grid-column:1/-1;padding:0 5px 8px}.brand-identity.compact .labusel-seal{width:48px;height:48px}.brand-identity.compact .brand-credit b{font-size:10px}}
