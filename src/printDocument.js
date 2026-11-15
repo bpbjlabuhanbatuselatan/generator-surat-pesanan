@@ -248,13 +248,13 @@ export async function openAllDocumentsPrint(db,id){
     buildReviewHtml(db,id)
   ]);
   const extract=(html)=>{
-    const styles=[...html.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/gi)].map(x=>x[1]).join("\\n");
+    const styles=[...html.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/gi)].map(x=>x[1]).join("\n");
     const body=(html.match(/<body[^>]*>([\s\S]*?)<\/body>/i)||[])[1]||"";
     return {styles,body};
   };
   const docs=[extract(surat),extract(koordinasi),extract(reviu)];
   const mergedStyles=docs.map(x=>x.styles).join("\\n");
-  const mergedBody=docs.map(x=>x.body).join('\\n<div class="combined-document-break"></div>\\n');
+  const mergedBody=docs.map(x=>x.body).join('\n<div class="combined-document-break"></div>\n');
   const w=window.open('','_blank');
   if(!w)throw new Error('Izinkan pop-up browser untuk mencetak seluruh dokumen.');
   w.document.open();
