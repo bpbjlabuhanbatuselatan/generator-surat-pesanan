@@ -240,8 +240,7 @@ export async function openProcurementPrint(db, id) {
 }
 
 export async function openAllDocumentsPrint(db,id){
-  // Satu dokumen HTML utuh (tanpa iframe bersarang) agar browser memecah
-  // halaman berdasarkan CSS A4 asli setiap dokumen, bukan memotong iframe.
+  // Hasilkan PDF A4 langsung dari aplikasi (tanpa dialog Print browser).
   const [surat,koordinasi,reviu]=await Promise.all([
     buildProcurementHtml(db,id),
     buildCoordinationHtml(db,id),
@@ -255,29 +254,46 @@ export async function openAllDocumentsPrint(db,id){
   const docs=[extract(surat),extract(koordinasi),extract(reviu)];
   const mergedStyles=docs.map(x=>x.styles).join("\n");
   const mergedBody=docs.map(x=>x.body).join('\n<div class="combined-document-break"></div>\n');
-  const w=window.open('','_blank');
-  if(!w)throw new Error('Izinkan pop-up browser untuk mencetak seluruh dokumen.');
-  w.document.open();
-  w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>Dokumen Pengadaan Lengkap</title><style>'+mergedStyles+'\\n@page{size:A4 portrait;margin:0}.combined-document-break{display:block;height:0;break-before:page;page-break-before:always}html,body{width:210mm!important;margin:0!important;padding:0!important;background:#fff!important}body{overflow:visible!important}.page{break-after:page;page-break-after:always}.page:last-of-type{break-after:auto;page-break-after:auto}@media print{html,body{width:210mm!important;margin:0!important;padding:0!important}.page{margin:0!important;box-shadow:none!important}}@media screen{body{margin:0 auto!important;background:#e8ebef!important}.page{margin:8mm auto!important;box-shadow:0 2px 12px #0002}}</style></head><body>'+mergedBody+'</body></html>');
-  w.document.close();
-  const waitForReady=async()=>{
-    const deadline=Date.now()+30000;
-    while(Date.now()<deadline){
+  const title=(surat.match(/<title>([\s\S]*?)<\/title>/i)||[])[1]||'Dokumen Pengadaan';
+  const filename=(title.replace(/<[^>]*>/g,'').replace(/^Dokumen\s*/i,'').replace(/[^a-z0-9-_ ]/gi,'').trim().replace(/\s+/g,'_')||'Dokumen_Pengadaan')+'_Lengkap.pdf';
+  const frame=document.createElement('iframe');
+  frame.setAttribute('aria-hidden','true');
+  frame.style.cssText='position:fixed;left:-12000px;top:0;width:210mm;height:100vh;border:0;visibility:hidden';
+  const html='<!doctype html><html><head><meta charset="utf-8"><title>'+filename+'</title><style>'+mergedStyles+'\n@page{size:A4 portrait;margin:0}.combined-document-break{height:0;break-before:page;page-break-before:always}html,body{width:210mm!important;margin:0!important;padding:0!important;background:#fff!important}body{overflow:visible!important}.page{break-after:page;page-break-after:always}.page:last-of-type{break-after:auto;page-break-after:auto}@media screen{.page{margin:0 auto!important;box-shadow:none!important}}</style></head><body>'+mergedBody+'</body></html>';
+  const ready=new Promise((resolve,reject)=>{
+    frame.onload=async()=>{
       try{
-        if(w.document.readyState==='complete'){
-          const pdfReady=w.__pdfAttachmentReady?await w.__pdfAttachmentReady:true;
-          const images=[...w.document.images];
-          const imagesReady=images.every(img=>img.complete&&img.naturalWidth>0);
-          if(pdfReady&&imagesReady){
-            w.focus();
-            w.print();
-            return;
-          }
+        const w=frame.contentWindow,d=frame.contentDocument;
+        if(w.__pdfAttachmentReady) {
+          const pdfOk=await w.__pdfAttachmentReady;
+          if(!pdfOk)throw new Error('Ada lampiran PDF yang gagal dimuat. Periksa file lampiran dan coba lagi.');
         }
-      }catch(e){}
-      await new Promise(resolve=>setTimeout(resolve,250));
-    }
-    throw new Error('Sebagian gambar atau lampiran belum selesai dimuat. Periksa koneksi lalu coba cetak kembali.');
-  };
-  waitForReady().catch(error=>{try{w.alert(error.message)}catch{}});
+        if(d.fonts?.ready)await d.fonts.ready;
+        const images=[...d.images];
+        const imageResults=await Promise.all(images.map(img=>img.complete?Promise.resolve(img.naturalWidth>0):new Promise(resolveImage=>{
+          img.onload=()=>resolveImage(true);img.onerror=()=>resolveImage(false);
+        })));
+        if(imageResults.some(ok=>!ok))throw new Error('Ada foto atau gambar yang gagal dimuat. PDF tidak dibuat agar tidak ada lampiran yang hilang.');
+        resolve({w,d});
+      }catch(error){reject(error)}
+    };
+  });
+  frame.srcdoc=html;
+  document.body.appendChild(frame);
+  try{
+    const {d}=await ready;
+    const html2pdf=(await import('html2pdf.js')).default;
+    const target=d.body;
+    const options={
+      margin:0,
+      filename,
+      image:{type:'jpeg',quality:0.98},
+      html2canvas:{scale:2,useCORS:true,allowTaint:false,backgroundColor:'#ffffff',logging:false,scrollX:0,scrollY:0,windowWidth:Math.ceil(210*96/25.4)},
+      jsPDF:{unit:'mm',format:'a4',orientation:'portrait',compress:true},
+      pagebreak:{mode:['css','legacy'],before:'.combined-document-break',avoid:['.sign','.signature-cell','.attachment-slot','tr']}
+    };
+    await html2pdf().set(options).from(target).save();
+  }finally{
+    frame.remove();
+  }
 }
