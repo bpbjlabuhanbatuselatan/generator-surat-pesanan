@@ -248,8 +248,8 @@ export async function openAllDocumentsPrint(db,id){
     buildReviewHtml(db,id)
   ]);
   const extract=(html)=>{
-    const styles=[...html.matchAll(/<style[^>]*>([\\s\\S]*?)<\\/style>/gi)].map(x=>x[1]).join("\\n");
-    const body=(html.match(/<body[^>]*>([\\s\\S]*?)<\\/body>/i)||[])[1]||"";
+    const styles=[...html.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/gi)].map(x=>x[1]).join("\\n");
+    const body=(html.match(/<body[^>]*>([\s\S]*?)<\/body>/i)||[])[1]||"";
     return {styles,body};
   };
   const docs=[extract(surat),extract(koordinasi),extract(reviu)];
