@@ -253,7 +253,7 @@ export async function openAllDocumentsPrint(db,id){
     return {styles,body};
   };
   const docs=[extract(surat),extract(koordinasi),extract(reviu)];
-  const mergedStyles=docs.map(x=>x.styles).join("\\n");
+  const mergedStyles=docs.map(x=>x.styles).join("\n");
   const mergedBody=docs.map(x=>x.body).join('\n<div class="combined-document-break"></div>\n');
   const w=window.open('','_blank');
   if(!w)throw new Error('Izinkan pop-up browser untuk mencetak seluruh dokumen.');
