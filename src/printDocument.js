@@ -250,65 +250,64 @@ export async function openProcurementPrint(db, id) {
 }
 
 export async function openAllDocumentsPrint(db,id){
-  // Cetak ketiga dokumen dalam satu jendela browser agar mesin cetak native
-  // yang menangani layout A4; hindari html2canvas yang menghasilkan halaman putih.
-  const w=window.open('','_blank');
-  if(!w)throw new Error('Izinkan pop-up browser untuk mencetak seluruh dokumen.');
-  try{
-    const [surat,koordinasi,reviu]=await Promise.all([
-      buildProcurementHtml(db,id),
-      buildCoordinationHtml(db,id),
-      buildReviewHtml(db,id)
-    ]);
-    const extract=(html)=>{
-      const styles=[...html.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/gi)].map(x=>x[1]).join("\n");
-      const body=(html.match(/<body[^>]*>([\s\S]*?)<\/body>/i)||[])[1]||"";
-      return {styles,body};
-    };
-    const docs=[extract(surat),extract(koordinasi),extract(reviu)];
-    if(docs.some(x=>!x.body.trim()))throw new Error('Salah satu dokumen tidak memiliki isi. Cetak keseluruhan dibatalkan.');
-    // Isolasi CSS tiap dokumen agar selector .page/body/table dari satu tab
-    // tidak menimpa layout tab lain saat dicetak bersama.
-    const scopeCss=(css,scope)=>{
-      const parse=(source)=>{
-        let out='',pos=0;
-        while(pos<source.length){
-          const open=source.indexOf('{',pos);
-          if(open<0){out+=source.slice(pos);break;}
-          const head=source.slice(pos,open).trim();
-          let depth=1,k=open+1;
-          while(k<source.length&&depth){if(source[k]==='{')depth++;else if(source[k]==='}')depth--;k++;}
-          const inner=source.slice(open+1,k-1);
-          if(head.startsWith('@page')){/* one shared A4 page rule below */}
-          else if(/^@(media|supports|container|layer)\b/i.test(head))out+=head+'{'+parse(inner)+'}';
-          else if(/^@(font-face|keyframes|-webkit-keyframes|counter-style|property)\b/i.test(head))out+=head+'{'+inner+'}';
-          else{
-            const selectors=head.split(',').map(s=>{
-              const q=s.trim();
-              if(!q)return '';
-              if(/^(html|body|:root)$/i.test(q))return scope;
-              if(/^(html|body|:root)\s+/.test(q))return scope+q.replace(/^(html|body|:root)/,'');
-              return scope+' '+q;
-            }).filter(Boolean).join(',');
-            out+=selectors+'{'+inner+'}';
-          }
-          pos=k;
-        }
-        return out;
-      };
-      return parse(css);
-    };
-    const styles=docs.map((x,i)=>scopeCss(x.styles,'.combined-part-'+(i+1))).join("\n");
-    const body=docs.map((x,i)=>'<div class="combined-part combined-part-'+(i+1)+'">'+x.body+'</div>').join('');
-    const title=(surat.match(/<title>([\s\S]*?)<\/title>/i)||[])[1]||'Dokumen Pengadaan';
-    const filename=(title.replace(/<[^>]*>/g,'').replace(/^Dokumen\s*/i,'').replace(/[^a-z0-9-_ ]/gi,'').trim().replace(/\s+/g,'_')||'Dokumen_Pengadaan')+'_Lengkap';
-    const html='<!doctype html><html><head><meta charset="utf-8"><title>'+filename+'</title><style>'+styles+'\n@page{size:A4 portrait;margin:0}html,body{width:auto!important;min-height:0!important;margin:0!important;padding:0!important;background:#fff!important}body{overflow:visible!important}.combined-part{display:block;position:relative;break-before:auto;page-break-before:auto}.combined-part-2,.combined-part-3{break-before:page;page-break-before:always}.combined-part-1 .page:last-of-type,.combined-part-2 .page:last-of-type,.combined-part-3 .page:last-of-type{break-after:auto!important;page-break-after:auto!important}.combined-part-3 .page{padding:15mm 15mm 18mm 20mm!important}@media screen{body{background:#e8ebef!important}.combined-part{background:#fff}}@media print{html,body,.combined-part{background:#fff!important}}img{max-width:100%;}table{max-width:100%;}</style></head><body>'+body+'</body></html>';
-    w.document.open();
-    w.document.write(html);
-    w.document.close();
-    printDocumentWhenReady(w);
-  }catch(error){
-    w.close();
-    throw error;
-  }
+  // Bangun ketiga dokumen terlebih dahulu. Jendela cetak dibuka setelah
+  // seluruh HTML siap sehingga tidak ada halaman kosong akibat dokumen gagal.
+  const [surat,koordinasi,reviu]=await Promise.all([
+    buildProcurementHtml(db,id),
+    buildCoordinationHtml(db,id),
+    buildReviewHtml(db,id)
+  ]);
+  const extract=(html)=>{
+    const styles=Array.from(html.matchAll(/<style[^>]*>([\\s\\S]*?)<\\/style>/gi),match=>match[1]).join("\\n");
+    const body=(html.match(/<body[^>]*>([\\s\\S]*?)<\\/body>/i)||[])[1]||"";
+    if(!body.trim())throw new Error("Salah satu dokumen tidak memiliki isi. Cetak keseluruhan dibatalkan.");
+    return {styles,body};
+  };
+  const docs=[surat,koordinasi,reviu].map(extract);
+  const scopeCss=(css,scope)=>{
+    let output="",position=0;
+    while(position<css.length){
+      const open=css.indexOf("{",position);
+      if(open<0){output+=css.slice(position);break;}
+      const header=css.slice(position,open).trim();
+      let depth=1,cursor=open+1;
+      while(cursor<css.length&&depth){
+        if(css[cursor]==="{")depth++;
+        else if(css[cursor]==="}")depth--;
+        cursor++;
+      }
+      const inner=css.slice(open+1,cursor-1);
+      if(/^@page\\b/i.test(header)){
+        // Satu aturan A4 dipasang bersama di dokumen induk.
+      }else if(/^@(media|supports|container|layer)\\b/i.test(header)){
+        output+=header+"{"+scopeCss(inner,scope)+"}";
+      }else if(/^@(font-face|keyframes|-webkit-keyframes|counter-style|property)\\b/i.test(header)){
+        output+=header+"{"+inner+"}";
+      }else{
+        const selectors=header.split(/,(?![^()]*\\))/).map(selector=>{
+          const value=selector.trim();
+          if(!value)return "";
+          if(/^(html|body|:root)$/i.test(value))return scope;
+          if(/^(html|body|:root)\\s+/.test(value))return scope+value.replace(/^(html|body|:root)/i,"");
+          return scope+" "+value;
+        }).filter(Boolean).join(",");
+        output+=selectors+"{"+inner+"}";
+      }
+      position=cursor;
+    }
+    return output;
+  };
+  const styleText=docs.map((doc,index)=>scopeCss(doc.styles,".combined-part-"+(index+1))).join("\\n");
+  const bodyText=docs.map((doc,index)=>'<div class="combined-part combined-part-'+(index+1)+'">'+doc.body+'</div>').join("");
+  const titleMatch=surat.match(/<title>([\\s\\S]*?)<\\/title>/i);
+  const title=(titleMatch?.[1]||"Dokumen Pengadaan").replace(/<[^>]*>/g,"");
+  const filename=(title.replace(/^Dokumen\\s*/i,"").replace(/[^a-z0-9-_ ]/gi,"").trim().replace(/\\s+/g,"_")||"Dokumen_Pengadaan")+"_Lengkap";
+  const html='<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+filename+'</title><style>'+styleText+
+    '\\n@page{size:A4 portrait;margin:0}*{box-sizing:border-box}html,body{width:210mm!important;margin:0!important;padding:0!important;background:#fff!important}body{overflow:visible!important}.combined-part{display:block;position:relative;width:210mm!important;margin:0!important;padding:0!important;break-before:auto;page-break-before:auto}.combined-part-2,.combined-part-3{break-before:page;page-break-before:always}.combined-part-1 .page:last-of-type,.combined-part-2 .page:last-of-type,.combined-part-3 .page:last-of-type{break-after:auto!important;page-break-after:auto!important}.combined-part-3 .page{width:210mm!important;min-height:0!important;height:auto!important;margin:0!important;padding:15mm 15mm 18mm 20mm!important;overflow:visible!important;box-shadow:none!important;break-inside:auto!important;page-break-inside:auto!important}.combined-part-3 .page.work-page{break-before:page;page-break-before:always}.combined-part-3 .page.attachment-page{break-before:page;page-break-before:always}.combined-part-3 table{max-width:100%!important}.combined-part-3 tr{break-inside:avoid;page-break-inside:avoid}@media screen{html,body{width:auto!important;background:#e8ebef!important}.combined-part{margin:10mm auto!important;background:#fff;box-shadow:0 2px 12px #0002}}@media print{html,body,.combined-part{background:#fff!important}.combined-part{margin:0!important}.combined-part-3 .page{margin:0!important}}img{max-width:100%;}</style></head><body>'+bodyText+'</body></html>';
+  const w=window.open("","_blank");
+  if(!w)throw new Error("Izinkan pop-up browser untuk mencetak seluruh dokumen.");
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
+  printDocumentWhenReady(w);
 }
