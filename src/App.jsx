@@ -87,8 +87,8 @@ function App(){
    let insertedGoods=[];if(goods.length){const out=await db.from('detail_barang').insert(goods).select('id,nomor_urut');if(out.error)throw out.error;insertedGoods=out.data||[]}
    const idMap=new Map();sourceGoods.forEach((x,i)=>{const match=insertedGoods.find(z=>z.nomor_urut===i+1)||insertedGoods[i];if(match)idMap.set(x.id,match.id)});
    const vendors=[];
-   const activeSourceVendors=(v.data||[]).filter(row=>{let detail={};try{detail=JSON.parse(row.keterangan||'{}')}catch{};return sourceGoods.length>0&&Number.isInteger(detail.product_index)&&detail.product_index>=0&&detail.product_index<sourceGoods.length&&String(row.nama_penyedia||'').trim()&&Number(detail.harga_satuan||0)>0});
-   for(let i=0;i<activeSourceVendors.length;i++){const x=clean(activeSourceVendors[i]);let detail={};try{detail=JSON.parse(x.keterangan||'{}')}catch{};detail.foto_path=await copyObject('dokumen-pendukung',detail.foto_path,'referensi-'+(i+1));vendors.push({...x,surat_id:newId,keterangan:JSON.stringify(detail)})}
+   const activeSourceVendors=(v.data||[]).filter(row=>{let detail={};try{detail=JSON.parse(row.keterangan||'{}')}catch{};const hasName=String(row.nama_penyedia||'').trim().length>0;const idx=Number.isInteger(detail.product_index)?detail.product_index:0;return hasName&&sourceGoods.length>0&&(sourceGoods.length===1||idx>=0&&idx<sourceGoods.length)});
+   for(let i=0;i<activeSourceVendors.length;i++){const x=clean(activeSourceVendors[i]);let detail={};try{detail=JSON.parse(x.keterangan||'{}')}catch{};detail.product_index=sourceGoods.length===1?0:(Number.isInteger(detail.product_index)?detail.product_index:0);detail.foto_path=await copyObject('dokumen-pendukung',detail.foto_path,'referensi-'+(i+1));vendors.push({...x,surat_id:newId,keterangan:JSON.stringify(detail)})}
    if(vendors.length){const out=await db.from('penyedia').insert(vendors);if(out.error)throw out.error}
    const refs=(h.data||[]).filter(x=>idMap.has(x.detail_barang_id)).map(x=>({...clean(x),surat_id:newId,detail_barang_id:idMap.get(x.detail_barang_id)}));
    if(refs.length){const out=await db.from('referensi_harga').insert(refs);if(out.error)throw out.error}
