@@ -81,14 +81,15 @@ function App(){
    const made=await db.from('surat').insert(base).select('id').single();if(made.error)throw made.error;
    const newId=made.data.id;
    const copyObject=async(bucket,path,label)=>{if(!path)return null;const ext=path.includes('.')?path.split('.').pop():'bin';const target=session.user.id+'/'+newId+'/'+label+'-'+Date.now()+'-'+Math.random().toString(36).slice(2,8)+'.'+ext;const out=await db.storage.from(bucket).copy(path,target);if(out.error)throw new Error('Gagal menyalin file '+path+': '+out.error.message);copied.push({bucket,path:target});return target};
+   const sourceGoods=(g.data||[]).filter(x=>String(x.nama_barang||'').trim());
    const goods=[];
-   for(let i=0;i<(g.data||[]).length;i++){const x=clean(g.data[i]);const path=await copyObject('foto-produk',x.foto_produk_path,'produk-'+(i+1));goods.push({...x,surat_id:newId,foto_produk_path:path})}
+   for(let i=0;i<sourceGoods.length;i++){const x=clean(sourceGoods[i]);const path=await copyObject('foto-produk',x.foto_produk_path,'produk-'+(i+1));goods.push({...x,nomor_urut:i+1,surat_id:newId,foto_produk_path:path})}
    let insertedGoods=[];if(goods.length){const out=await db.from('detail_barang').insert(goods).select('id,nomor_urut');if(out.error)throw out.error;insertedGoods=out.data||[]}
-   const idMap=new Map();(g.data||[]).forEach((x,i)=>{const match=insertedGoods.find(z=>z.nomor_urut===x.nomor_urut)||insertedGoods[i];if(match)idMap.set(x.id,match.id)});
+   const idMap=new Map();sourceGoods.forEach((x,i)=>{const match=insertedGoods.find(z=>z.nomor_urut===i+1)||insertedGoods[i];if(match)idMap.set(x.id,match.id)});
    const vendors=[];
-   for(let i=0;i<(v.data||[]).length;i++){const x=clean(v.data[i]);let detail={};try{detail=JSON.parse(x.keterangan||'{}')}catch{};detail.foto_path=await copyObject('dokumen-pendukung',detail.foto_path,'referensi-'+(i+1));vendors.push({...x,surat_id:newId,keterangan:JSON.stringify(detail)})}
+   for(let i=0;i<(v.data||[]).length;i++){const x=clean(v.data[i]);let detail={};try{detail=JSON.parse(x.keterangan||'{}')}catch{};const oldIndex=Number.isInteger(detail.product_index)?detail.product_index:0;if(sourceGoods.length){detail.product_index=Math.min(Math.max(oldIndex,0),sourceGoods.length-1)}else{detail.product_index=0};detail.foto_path=await copyObject('dokumen-pendukung',detail.foto_path,'referensi-'+(i+1));vendors.push({...x,surat_id:newId,keterangan:JSON.stringify(detail)})}
    if(vendors.length){const out=await db.from('penyedia').insert(vendors);if(out.error)throw out.error}
-   const refs=(h.data||[]).map(x=>({...clean(x),surat_id:newId,detail_barang_id:idMap.get(x.detail_barang_id)||null}));
+   const refs=(h.data||[]).filter(x=>idMap.has(x.detail_barang_id)).map(x=>({...clean(x),surat_id:newId,detail_barang_id:idMap.get(x.detail_barang_id)}));
    if(refs.length){const out=await db.from('referensi_harga').insert(refs);if(out.error)throw out.error}
    const officials=[];
    for(let i=0;i<(p.data||[]).length;i++){const x=clean(p.data[i]);officials.push({...x,surat_id:newId,tanda_tangan_path_snapshot:await copyObject('tanda-tangan',x.tanda_tangan_path_snapshot,'ttd-'+(i+1))})}
