@@ -10,7 +10,7 @@ export async function buildProcurementHtml(db, id) {
   ]);
   const error = [s, items, providers, refs, docs, officials, review].find(x => x.error);
   if (error) throw error.error;
-  const d = s.data, goods = items.data || [], vendors = providers.data || [], prices = refs.data || [], files = (docs.data || []).filter(x=>!String(x.kategori||'').startsWith('Bukti Reviu - ')), signers = officials.data || [];
+  const d = s.data, goods = (items.data || []).filter(x=>String(x.nama_barang||'').trim()), vendors = providers.data || [], prices = refs.data || [], files = (docs.data || []).filter(x=>!String(x.kategori||'').startsWith('Bukti Reviu - ')), signers = officials.data || [];
   let letterheadUrl='';
   if(d.opd_id){
     const {data:opd,error:opdError}=await db.from('opd').select('kop_surat_path').eq('id',d.opd_id).maybeSingle();
@@ -44,7 +44,7 @@ export async function buildProcurementHtml(db, id) {
   const esc = v => String(v ?? '—').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const rp = v => v == null || v === '' ? '—' : new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(Number(v));
   const rows = goods.map((x,i) => '<tr><td>'+(i+1)+'</td><td>'+esc(x.nama_barang)+'</td><td>'+esc(x.spesifikasi)+(x.foto_signed_url?'<div class="product-photo-wrap"><img class="product-photo" src="'+x.foto_signed_url+'" alt="Foto '+esc(x.nama_barang)+'"></div>':'')+'</td><td>'+esc(x.volume)+'</td><td>'+esc(x.satuan)+'</td><td class="amount-cell">'+rp(x.pagu_dpa_rka)+'</td><td class="amount-cell">'+rp(x.harga_satuan)+'</td><td class="amount-cell">'+rp(Number(x.volume)*Number(x.harga_satuan))+'</td></tr>').join('');
-  const vendorProductIndex=v=>Number.isInteger(v.reference_detail?.product_index)?v.reference_detail.product_index:0;
+  const vendorProductIndex=v=>{const raw=Number.isInteger(v.reference_detail?.product_index)?v.reference_detail.product_index:0;return goods.length?Math.min(Math.max(raw,0),goods.length-1):0;};
   const classifiedProviders=vendors.filter(v=>['PDN','TKDN'].includes(v.reference_detail?.jenis_produk));
   const pdnSummaryHtml=classifiedProviders.length
     ?'<p>Produk dalam negeri berdasarkan referensi harga: '+classifiedProviders.length+' referensi penyedia teridentifikasi sebagai PDN/TKDN.</p><ul class="pdn-detail-list">'+classifiedProviders.map(v=>{const x=v.reference_detail||{};const pi=vendorProductIndex(v);if(x.jenis_produk==='PDN')return '<li><b>'+esc(goods[pi]?.nama_barang||'Produk')+' — '+esc(v.nama_penyedia)+'</b>: PDN.</li>';const hasTkdn=x.nilai_tkdn!==null&&x.nilai_tkdn!==undefined&&x.nilai_tkdn!=='';const hasBmp=x.nilai_bmp!==null&&x.nilai_bmp!==undefined&&x.nilai_bmp!=='';const total=(hasTkdn?Number(x.nilai_tkdn)||0:0)+(hasBmp?Number(x.nilai_bmp)||0:0);const details=[hasTkdn?'TKDN '+esc(x.nilai_tkdn)+'%':'',hasBmp?'BMP '+esc(x.nilai_bmp):'',hasTkdn||hasBmp?'TKDN + BMP '+total.toFixed(2).replace(/\.?0+$/,'')+'%':''].filter(Boolean);return '<li><b>'+esc(goods[pi]?.nama_barang||'Produk')+' — '+esc(v.nama_penyedia)+'</b>: TKDN'+(details.length?' ('+details.join('; ')+')':' (nilai belum diisi)')+'.</li>';}).join('')+'</ul>'
