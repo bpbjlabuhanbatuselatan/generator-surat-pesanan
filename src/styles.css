@@ -147,3 +147,17 @@
 .login-card .brand-identity.compact .brand-credit span{font-size:10px;color:#667b90}
 .login-card .brand-identity.compact .brand-credit small{font-size:9px;color:#a17b39}
 @media(max-width:620px){.brand{grid-column:1/-1;padding:0 5px 8px}.brand-identity.compact .labusel-seal{width:48px;height:48px}.brand-identity.compact .brand-credit b{font-size:10px}}
+
+/* Daftar surat: kartu responsif tanpa scroll horizontal */
+.document-list{display:grid;grid-template-columns:1fr;gap:13px;margin-top:16px;min-width:0}
+.document-card{min-width:0;background:linear-gradient(145deg,#fff,#f8fbfe);border:1px solid #dbe5ef;border-left:4px solid #c89b45;border-radius:13px;padding:17px 18px;box-shadow:0 5px 18px #183b5c0a}
+.document-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.document-title{min-width:0}.document-title>b{display:block;color:#153653;font:800 13px/1.45 Manrope,sans-serif;overflow-wrap:anywhere}
+.document-title>small{display:block;color:#8999aa;font-size:10px;margin-top:5px}
+.document-meta{display:grid;grid-template-columns:2fr 1fr 1fr 1.2fr;gap:12px;margin:15px 0;padding:12px 0;border-top:1px solid #e9eff5;border-bottom:1px solid #e9eff5}
+.document-meta>div{min-width:0}.document-meta small{display:block;color:#8a9aab;font-size:9px;font-weight:800;letter-spacing:.5px;margin-bottom:5px}
+.document-meta b{display:block;color:#294966;font-size:11px;line-height:1.4;overflow-wrap:anywhere}
+.document-actions{display:flex;flex-wrap:wrap;gap:7px}
+.document-actions button{min-height:34px}
+@media(max-width:700px){.document-card{padding:13px}.document-title>b{font-size:12px}.document-meta{grid-template-columns:1fr 1fr;gap:11px}.document-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.document-actions button{width:100%;justify-content:center;white-space:normal;line-height:1.25;padding:9px 6px}.document-actions button.primary{grid-column:1/-1}.panel{min-width:0}.table-wrap{overflow:visible}}
+@media(min-width:1100px){.document-list{grid-template-columns:repeat(2,minmax(0,1fr))}.document-card{height:100%}.document-meta{grid-template-columns:1.6fr .8fr .9fr 1fr}}
