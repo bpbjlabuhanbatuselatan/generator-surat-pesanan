@@ -262,3 +262,20 @@
   .content{padding:18px}
   .provider-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
+
+
+/* Product selector: one focused product form at a time */
+.item-switcher{display:flex;gap:9px;overflow-x:auto;overscroll-behavior-x:contain;padding:4px 2px 12px;margin:10px 0 4px;scrollbar-width:thin;scroll-snap-type:x proximity}
+.item-switch{flex:0 0 155px;min-width:155px;display:flex;flex-direction:column;align-items:flex-start;gap:5px;text-align:left;padding:12px 14px;border:1px solid #d7e2ed;border-radius:12px;background:#f7fafd;color:#36536f;scroll-snap-align:start}
+.item-switch span{font:800 12px Manrope,sans-serif}
+.item-switch small{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#8798aa;font-size:10px}
+.item-switch.active{background:linear-gradient(120deg,#102b4e,#245b86);border-color:#c89b45;color:#fff;box-shadow:0 5px 15px #102b4e20}
+.item-switch.active small{color:#d6e2ee}
+.item-editor-card{margin-top:4px}
+@media(max-width:620px){
+ .item-switcher{gap:8px;margin:8px -2px 10px;padding:4px 2px 11px}
+ .item-switch{flex-basis:132px;min-width:132px;padding:11px 12px}
+ .item-switch span{font-size:11px}
+ .item-switch small{font-size:9px}
+ .item-editor-card{padding:12px}
+}
