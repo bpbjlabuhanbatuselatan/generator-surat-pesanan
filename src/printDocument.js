@@ -154,7 +154,8 @@ export async function buildReviewHtml(db,id){
   const signatureBlock=role=>{
     const p=signers.find(x=>x.peran===role);
     if(!p)return '<div class="signature-cell">'+esc(role)+'<div class="signature-space"></div><b>(................................)</b></div>';
-    return '<div class="signature-cell"><div class="signature-role">'+esc(p.jabatan_snapshot||p.peran)+'</div><div class="signature-space">'+(p.signature_url?'<img src="'+esc(p.signature_url)+'" alt="Tanda tangan '+esc(p.nama_snapshot)+'">':'')+'</div><b>'+esc(p.nama_snapshot)+'</b>'+(p.nip_snapshot?'<br>NIP. '+esc(p.nip_snapshot):'')+'</div>';
+    const signatureSrc=p.signature_url||defaultOfficialSignature(role);
+    return '<div class="signature-cell"><div class="signature-role">'+esc(p.jabatan_snapshot||p.peran)+'</div><div class="signature-space">'+(signatureSrc?'<img src="'+esc(signatureSrc)+'" alt="Tanda tangan '+esc(p.nama_snapshot)+'">':'')+'</div><b>'+esc(p.nama_snapshot)+'</b>'+(p.nip_snapshot?'<br>NIP. '+esc(p.nip_snapshot):'')+'</div>';
   };
   const date=v=>{if(!v)return '—';const x=new Date(v+'T00:00:00');return Number.isNaN(x.getTime())?esc(v):x.toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'});};
   const category=(title)=>'<tr class="section-row"><th colspan="4">'+title+'</th></tr>';
