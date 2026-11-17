@@ -39,7 +39,8 @@ export async function buildProcurementHtml(db, id) {
   const signatureBlock = role => {
     const p = signers.find(x => x.peran === role);
     if (!p) return '<div class="signature-cell">'+esc(role)+'<div class="signature-space"></div><b>(................................)</b></div>';
-    return '<div class="signature-cell"><div class="signature-role">'+esc(p.jabatan_snapshot || p.peran)+'</div><div class="signature-space">'+(p.signature_url?'<img src="'+p.signature_url+'" alt="Tanda tangan '+esc(p.nama_snapshot)+'">':'')+'</div><b>'+esc(p.nama_snapshot)+'</b>'+(p.nip_snapshot?'<br>NIP. '+esc(p.nip_snapshot):'')+'</div>';
+    const signatureSrc=p.signature_url||defaultOfficialSignature(role);
+    return '<div class="signature-cell"><div class="signature-role">'+esc(p.jabatan_snapshot || p.peran)+'</div><div class="signature-space">'+(signatureSrc?'<img src="'+signatureSrc+'" alt="Tanda tangan '+esc(p.nama_snapshot)+'">':'')+'</div><b>'+esc(p.nama_snapshot)+'</b>'+(p.nip_snapshot?'<br>NIP. '+esc(p.nip_snapshot):'')+'</div>';
   };
   const esc = v => String(v ?? '—').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const rp = v => v == null || v === '' ? '—' : new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(Number(v));
@@ -92,6 +93,7 @@ export async function buildProcurementHtml(db, id) {
   return html;
 }
 
+const defaultOfficialSignature=role=>{const base=import.meta.env.BASE_URL||'/';const key=String(role||'').toUpperCase()==='PPTK'?'rina-signature.svg':String(role||'').toUpperCase()==='PPK'?'dewi-signature.svg':'';return key?base+key:'';};
 const ppbjSignatureData=import.meta.env.BASE_URL+'ali-akbar-signature.png';
 export async function buildCoordinationHtml(db,id){
   const [s,review,officials]=await Promise.all([
@@ -115,7 +117,8 @@ export async function buildCoordinationHtml(db,id){
   const signatureBlock=role=>{
     const p=signers.find(x=>String(x.peran||'').toUpperCase()===role);
     if(!p)return '<div class="signature-cell"><div class="signature-role">'+esc(role==='PPK'?'Pejabat Pembuat Komitmen':'Pejabat Pengadaan')+'</div><div class="signature-space"></div><b>(................................)</b></div>';
-    return '<div class="signature-cell"><div class="signature-role">'+esc(p.jabatan_snapshot||p.peran)+'</div><div class="signature-space">'+(p.signature_url?'<img src="'+esc(p.signature_url)+'" alt="Tanda tangan '+esc(p.nama_snapshot)+'">':'')+'</div><b>'+esc(p.nama_snapshot||'')+'</b>'+(p.nip_snapshot?'<br>NIP. '+esc(p.nip_snapshot):'')+'</div>';
+    const signatureSrc=p.signature_url||defaultOfficialSignature(role);
+    return '<div class="signature-cell"><div class="signature-role">'+esc(p.jabatan_snapshot||p.peran)+'</div><div class="signature-space">'+(signatureSrc?'<img src="'+esc(signatureSrc)+'" alt="Tanda tangan '+esc(p.nama_snapshot)+'">':'')+'</div><b>'+esc(p.nama_snapshot||'')+'</b>'+(p.nip_snapshot?'<br>NIP. '+esc(p.nip_snapshot):'')+'</div>';
   };
   const ppbj='<div class="signature-cell"><div class="signature-role">Pejabat Pengadaan<br>Barang/Jasa</div><div class="signature-space"><img class="ppbj-signature" src="'+ppbjSignatureData+'" alt="Tanda tangan Ali Akbar"></div><b>ALI AKBAR, SE</b><br>NIP. 199203032022031004</div>';
   const paragraph='Pada hari ini, '+weekday(meetingDate)+' tanggal '+date(meetingDate)+', bertempat di Bagian Pengadaan Barang dan Jasa Sekretariat Daerah Kompleks Perkantoran Pemerintah Kabupaten Labuhanbatu Selatan Desa Sosopan Kotapinang, pukul '+time(raw.waktu_mulai)+' sampai dengan pukul '+time(raw.waktu_selesai)+', Pejabat Pengadaan bersama PPK/PPTK dan Tim Ahli/Teknis/Pendukung '+opd+' telah melaksanakan rapat koordinasi untuk mereviu dokumen persiapan pengadaan melalui e-purchasing. Reviu dilaksanakan dengan mengacu pada Peraturan Presiden Nomor 16 Tahun 2018 tentang Pengadaan Barang/Jasa Pemerintah beserta perubahannya dan Peraturan LKPP Nomor 2 Tahun 2026 tentang Katalog Elektronik dalam Pengadaan Barang/Jasa Pemerintah, untuk paket '+packageName+'. Hasil Reviu dapat dilihat sebagaimana terlampir.';
