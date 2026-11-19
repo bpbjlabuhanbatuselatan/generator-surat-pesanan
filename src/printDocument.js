@@ -21,6 +21,15 @@ async function makeStampTransparent(url){
       else if(chroma<52&&light>112)px[i+3]=Math.round(px[i+3]*Math.max(0,Math.min(1,(chroma-34)/18)));
     }
     ctx.putImageData(image,0,0);
+    let minX=canvas.width,minY=canvas.height,maxX=-1,maxY=-1;
+    for(let y=0;y<canvas.height;y++)for(let x=0;x<canvas.width;x++){const alpha=px[(y*canvas.width+x)*4+3];if(alpha>12){if(x<minX)minX=x;if(y<minY)minY=y;if(x>maxX)maxX=x;if(y>maxY)maxY=y;}}
+    if(maxX>=minX&&maxY>=minY){
+      const pad=Math.max(2,Math.round(Math.max(maxX-minX+1,maxY-minY+1)*.025));
+      const sx=Math.max(0,minX-pad),sy=Math.max(0,minY-pad),sw=Math.min(canvas.width-sx,maxX-minX+1+pad*2),sh=Math.min(canvas.height-sy,maxY-minY+1+pad*2);
+      const cropped=document.createElement('canvas');cropped.width=sw;cropped.height=sh;
+      cropped.getContext('2d').drawImage(canvas,sx,sy,sw,sh,0,0,sw,sh);
+      return cropped.toDataURL('image/png');
+    }
     return canvas.toDataURL('image/png');
   }catch(error){console.warn('Stempel tetap memakai gambar asli:',error);return url;}
 }
@@ -195,6 +204,7 @@ export async function buildReviewHtml(db,id){
   const rp=v=>v==null||v===''?'—':new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(Number(v));
   const d=s.data,r=review.data,goods=items.data||[],vendors=providers.data||[],signers=officials.data||[];
   let stampUrl='';if(d.opd_id){const {data:opd,error:opdError}=await db.from('opd').select('stempel_path').eq('id',d.opd_id).maybeSingle();if(opdError)throw opdError;if(opd?.stempel_path){const signed=await db.storage.from('tanda-tangan').createSignedUrl(opd.stempel_path,300);stampUrl=signed.data?.signedUrl||'';}}if(!stampUrl&&String(d.nama_opd_snapshot||'').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toUpperCase().replace(/[^A-Z0-9]+/g,' ').trim()==='DINAS PERPUSTAKAAN DAN ARSIP')stampUrl=opdStampFallback;
+  if(stampUrl)stampUrl=await makeStampTransparent(stampUrl);
   for(const x of goods)if(x.foto_produk_path){const q=await db.storage.from('foto-produk').createSignedUrl(x.foto_produk_path,300);x.foto_signed_url=q.data?.signedUrl||'';}
   for(const v of vendors){try{v.reference_detail=JSON.parse(v.keterangan||'{}');const path=v.reference_detail.foto_path;if(path){const q=await db.storage.from('dokumen-pendukung').createSignedUrl(path,300);v.reference_photo_url=q.data?.signedUrl||'';}}catch{v.reference_detail={};}}
   for(const x of signers)if(x.tanda_tangan_path_snapshot){const q=await db.storage.from('tanda-tangan').createSignedUrl(x.tanda_tangan_path_snapshot,300);x.signature_url=q.data?.signedUrl||'';}
