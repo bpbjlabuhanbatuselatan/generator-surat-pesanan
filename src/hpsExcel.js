@@ -14,7 +14,7 @@ async function signedImage(db,path,bucket){
 }
 export async function downloadHpsExcel(db,id){
  const ExcelJS=await loadExcelJS();
- const [s,g,p]=await Promise.all([
+ const [s,g,p,r]=await Promise.all([
   db.from('surat').select('*').eq('id',id).single(),
   db.from('detail_barang').select('*').eq('surat_id',id).order('nomor_urut'),
   db.from('surat_pejabat').select('*').eq('surat_id',id)
