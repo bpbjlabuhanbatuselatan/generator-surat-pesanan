@@ -63,6 +63,8 @@ export async function downloadHpsExcel(db,id){
   ws.getCell(signRow+2,col1).font={name:'Arial',size:10,bold:true};ws.getCell(signRow+2,col1).alignment={horizontal:'center',vertical:'middle',wrapText:true};
   if(person?.tanda_tangan_path_snapshot){const img=await signedImage(db,person.tanda_tangan_path_snapshot,'tanda-tangan');if(img){const imageId=wb.addImage({buffer:img.buffer,extension:img.extension});ws.addImage(imageId,{tl:{col:col1-1,row:signRow},br:{col:col2,row:signRow+2},editAs:'oneCell'});}}
  }
- ws.pageSetup.printArea='A1:H'+(signRow+2);ws.views=[{state:'normal'}];
+ ws.pageSetup.printArea='A1:H'+(signRow+2);ws.views=[{state:'normal',showGridLines:false,zoomScale:75,activeCell:'A1',topLeftCell:'A1',selection:[{sqref:'A1'}]}];
+ ws.views[0].state='normal';
+ ws.properties.defaultColWidth=12;
  const buffer=await wb.xlsx.writeBuffer();const blob=new Blob([buffer],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='HPS_'+String(d.nama_paket||'Paket').replace(/[^a-z0-9-_ ]/gi,'').trim().replace(/\s+/g,'_')+'.xlsx';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
 }
