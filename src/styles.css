@@ -279,3 +279,27 @@
  .item-switch small{font-size:9px}
  .item-editor-card{padding:12px}
 }
+
+
+/* OPD archive folders */
+.folder-summary{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:16px 0 12px;padding:11px 14px;border:1px solid #e4ebf2;border-radius:12px;background:#f8fafc;color:#64778b;font-size:12px;font-weight:700}
+.opd-folder-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:12px}
+.opd-folder{min-width:0;display:flex;align-items:center;gap:13px;padding:17px 15px;text-align:left;border:1px solid #e0e8f0;border-radius:15px;background:linear-gradient(145deg,#fff,#f8fbfe);color:#173653;box-shadow:0 4px 14px #17365308;transition:border-color .18s,transform .18s,box-shadow .18s}
+.opd-folder:hover{border-color:#b9cadd;transform:translateY(-1px);box-shadow:0 7px 18px #17365310}
+.opd-folder-icon{width:46px;height:46px;flex:0 0 46px;display:grid;place-items:center;border-radius:13px;background:#eaf1f8;color:#244f77}
+.opd-folder-copy{min-width:0;display:flex;flex:1;flex-direction:column;gap:5px}
+.opd-folder-copy b{font:800 12px/1.45 Manrope,sans-serif;overflow-wrap:anywhere}
+.opd-folder-copy small{font-size:10px;color:#8191a2}
+.opd-folder-arrow{color:#8da0b2}
+.folder-breadcrumb{display:flex;align-items:center;gap:13px;margin:16px 0;padding:12px;border:1px solid #e3eaf1;border-radius:13px;background:#f8fafc}
+.folder-breadcrumb>div{min-width:0;display:flex;align-items:center;gap:9px;color:#234d73}
+.folder-breadcrumb>div b{font-size:12px;overflow-wrap:anywhere}
+.folder-breadcrumb>div span{font-size:10px;color:#8292a3;white-space:nowrap}
+@media(max-width:620px){
+ .opd-folder-grid{grid-template-columns:minmax(0,1fr);gap:9px}
+ .opd-folder{padding:13px;border-radius:13px}
+ .opd-folder-icon{width:41px;height:41px;flex-basis:41px}
+ .folder-summary{font-size:10px;padding:10px 12px}
+ .folder-breadcrumb{align-items:flex-start;flex-direction:column;gap:10px}
+ .folder-breadcrumb>div{align-items:flex-start}
+}
