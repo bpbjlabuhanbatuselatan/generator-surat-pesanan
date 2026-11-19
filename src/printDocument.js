@@ -39,7 +39,7 @@ export async function buildProcurementHtml(db, id) {
   const signatureBlock = role => {
     const p = signers.find(x => x.peran === role);
     if (!p) return '<div class="signature-cell">'+esc(role)+'<div class="signature-space"></div><b>(................................)</b></div>';
-    const signatureSrc=p.signature_url||defaultOfficialSignature(role);
+    const signatureSrc=p.signature_url||defaultOfficialSignature(p);
     return '<div class="signature-cell"><div class="signature-role">'+esc(p.jabatan_snapshot || p.peran)+'</div><div class="signature-space">'+(signatureSrc?'<img src="'+signatureSrc+'" alt="Tanda tangan '+esc(p.nama_snapshot)+'">':'')+'</div><b>'+esc(p.nama_snapshot)+'</b>'+(p.nip_snapshot?'<br>NIP. '+esc(p.nip_snapshot):'')+'</div>';
   };
   const esc = v => String(v ?? '—').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -105,7 +105,7 @@ export async function buildProcurementHtml(db, id) {
   return html;
 }
 
-const defaultOfficialSignature=role=>{const base=import.meta.env.BASE_URL||'/';const key=String(role||'').toUpperCase()==='PPTK'?'rina-signature.svg':String(role||'').toUpperCase()==='PPK'?'dewi-signature.svg':'';return key?base+key:'';};
+const defaultOfficialSignature=signer=>{const base=import.meta.env.BASE_URL||'/';const name=String(signer?.nama_snapshot||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/[^A-Z0-9]+/g,' ').trim();const key=name.includes('TRY FATRA KHAZANAH')?'try-fatra-signature.svg':name.includes('RINA ERIANTI ARITONANG')?'rina-signature.svg':name.includes('DEWI HAZRIANI')?'dewi-signature.svg':'';return key?base+key:'';};
 const ppbjSignatureData=import.meta.env.BASE_URL+'ali-akbar-signature.png';
 export async function buildCoordinationHtml(db,id){
   const [s,review,officials]=await Promise.all([
@@ -129,7 +129,7 @@ export async function buildCoordinationHtml(db,id){
   const signatureBlock=role=>{
     const p=signers.find(x=>String(x.peran||'').toUpperCase()===role);
     if(!p)return '<div class="signature-cell"><div class="signature-role">'+esc(role==='PPK'?'Pejabat Pembuat Komitmen':'Pejabat Pengadaan')+'</div><div class="signature-space"></div><b>(................................)</b></div>';
-    const signatureSrc=p.signature_url||defaultOfficialSignature(role);
+    const signatureSrc=p.signature_url||defaultOfficialSignature(p);
     return '<div class="signature-cell"><div class="signature-role">'+esc(p.jabatan_snapshot||p.peran)+'</div><div class="signature-space">'+(signatureSrc?'<img src="'+esc(signatureSrc)+'" alt="Tanda tangan '+esc(p.nama_snapshot)+'">':'')+'</div><b>'+esc(p.nama_snapshot||'')+'</b>'+(p.nip_snapshot?'<br>NIP. '+esc(p.nip_snapshot):'')+'</div>';
   };
   const ppbj='<div class="signature-cell"><div class="signature-role">Pejabat Pengadaan<br>Barang/Jasa</div><div class="signature-space"><img class="ppbj-signature" src="'+ppbjSignatureData+'" alt="Tanda tangan Ali Akbar"></div><b>ALI AKBAR, SE</b><br>NIP. 199203032022031004</div>';
@@ -166,7 +166,7 @@ export async function buildReviewHtml(db,id){
   const signatureBlock=role=>{
     const p=signers.find(x=>x.peran===role);
     if(!p)return '<div class="signature-cell">'+esc(role)+'<div class="signature-space"></div><b>(................................)</b></div>';
-    const signatureSrc=p.signature_url||defaultOfficialSignature(role);
+    const signatureSrc=p.signature_url||defaultOfficialSignature(p);
     return '<div class="signature-cell"><div class="signature-role">'+esc(p.jabatan_snapshot||p.peran)+'</div><div class="signature-space">'+(signatureSrc?'<img src="'+esc(signatureSrc)+'" alt="Tanda tangan '+esc(p.nama_snapshot)+'">':'')+'</div><b>'+esc(p.nama_snapshot)+'</b>'+(p.nip_snapshot?'<br>NIP. '+esc(p.nip_snapshot):'')+'</div>';
   };
   const date=v=>{if(!v)return '—';const x=new Date(v+'T00:00:00');return Number.isNaN(x.getTime())?esc(v):x.toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'});};
