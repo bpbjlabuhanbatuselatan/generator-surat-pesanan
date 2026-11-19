@@ -46,8 +46,7 @@ export async function buildProcurementHtml(db, id) {
   const rp = v => v == null || v === '' ? '—' : new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(Number(v));
   const rows = goods.map((x,i) => '<tr><td>'+(i+1)+'</td><td>'+esc(x.nama_barang)+'</td><td>'+esc(x.spesifikasi)+(x.foto_signed_url?'<div class="product-photo-wrap"><img class="product-photo" src="'+x.foto_signed_url+'" alt="Foto '+esc(x.nama_barang)+'"></div>':'')+'</td><td>'+esc(x.volume)+'</td><td>'+esc(x.satuan)+'</td><td class="amount-cell">'+rp(x.pagu_dpa_rka)+'</td><td class="amount-cell">'+rp(x.harga_satuan)+'</td><td class="amount-cell">'+rp(Number(x.volume)*Number(x.harga_satuan))+'</td></tr>').join('');
   const similarProductSections=goods.map((g,i)=>{
-    const meta=(()=>{try{const raw=String(g.keterangan||'');return raw.startsWith('__PBJ_META__:')?JSON.parse(raw.slice(13)):{};}catch{return {};}})();
-    const similar=Array.isArray(meta.produk_mirip)?meta.produk_mirip.filter(x=>[x.merek,x.spesifikasi,x.harga].some(v=>String(v??'').trim())):[];
+    const similar=prices.filter(x=>x.detail_barang_id===g.id&&String(x.sumber_referensi||'').trim()==='Produk sejenis berdasarkan spesifikasi').map(x=>{const parts=String(x.nama_produk||'').split(' — ');return {merek:parts.shift()||'',spesifikasi:parts.join(' — '),harga:x.harga};}).filter(x=>[x.merek,x.spesifikasi,x.harga].some(v=>String(v??'').trim()));
     const itemName=String(g.nama_barang||'').toLowerCase();
     const packageName=String(d.nama_paket||'').toLowerCase();
     const excluded=/(\\b(atk|alat tulis kantor|pulpen|pena|pensil|kertas|map|ordner|amplop|spidol|stapler|isi staples|tinta isi ulang|konsumsi|makan|minum|makanan|minuman|snack|kudapan|air mineral|kopi|teh|gula|sembako)\\b)/i.test(itemName+' '+packageName);
