@@ -45,7 +45,7 @@ export async function downloadHpsExcel(db,id){
  ws.getCell(signRow,1).value='Mengetahui,\nPPK';ws.getCell(signRow,5).value='PPTK';[1,5].forEach(col=>{const c=ws.getCell(signRow,col);c.font={name:'Arial',size:10,bold:true};c.alignment={horizontal:'center',vertical:'middle',wrapText:true};});ws.getRow(signRow).height=34;
  ws.mergeCells(signRow+1,1,signRow+1,4);ws.mergeCells(signRow+1,5,signRow+1,8);ws.getRow(signRow+1).height=62;
  ws.mergeCells(signRow+2,1,signRow+2,4);ws.mergeCells(signRow+2,5,signRow+2,8);ws.getRow(signRow+2).height=24;
- for(const [role,col1,col2] of [['PPK',1,4],['PPTK',5,8]]){
+ for(const [role,col1,col2] of [['PPTK',1,4],['PPK',5,8]]){
   const person=officials.find(x=>String(x.peran||'').toUpperCase()===role);
   const label=person?.jabatan_snapshot||role;
   ws.getCell(signRow, col1).value=role==='PPK'?'Mengetahui,\n'+label:label;
