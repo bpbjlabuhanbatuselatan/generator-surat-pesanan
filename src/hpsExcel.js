@@ -17,10 +17,11 @@ export async function downloadHpsExcel(db,id){
  const [s,g,p,r]=await Promise.all([
   db.from('surat').select('*').eq('id',id).single(),
   db.from('detail_barang').select('*').eq('surat_id',id).order('nomor_urut'),
-  db.from('surat_pejabat').select('*').eq('surat_id',id)
+  db.from('surat_pejabat').select('*').eq('surat_id',id),
+  db.from('reviu').select('hasil_reviu').eq('surat_id',id).order('created_at',{ascending:false}).limit(1).maybeSingle()
  ]);
- for(const q of [s,g,p])if(q.error)throw q.error;
- const d=s.data,goods=g.data||[],officials=p.data||[];
+ for(const q of [s,g,p,r])if(q.error)throw q.error;
+ const d=s.data,goods=g.data||[],officials=p.data||[],reviewMeta=Array.isArray(r.data?.hasil_reviu)?r.data.hasil_reviu[0]||{}:{},selectedIndex=Math.max(0,Number(reviewMeta.produk_usulan_index||0));
  if(!goods.length)throw new Error('Belum ada rincian barang untuk dibuatkan HPS.');
  const wb=new ExcelJS.Workbook();wb.creator='Generator Dokumen PBJ';wb.subject='Harga Perkiraan Sendiri';wb.created=new Date();
  const ws=wb.addWorksheet('HPS',{pageSetup:{paperSize:wsPaper(),orientation:'landscape',fitToPage:true,fitToWidth:1,fitToHeight:0,margins:{left:0.25,right:0.25,top:0.45,bottom:0.45,header:0.2,footer:0.2}}});
@@ -34,7 +35,8 @@ export async function downloadHpsExcel(db,id){
  goods.forEach((g,i)=>{
   let meta={};try{if(String(g.keterangan||'').startsWith('__PBJ_META__:'))meta=JSON.parse(String(g.keterangan).slice(13));}catch{}
   const brand=[meta.merek_produk,meta.tipe_produk].filter(Boolean).join(' / ');
-  const row=ws.addRow([i+1,g.nama_barang||'',g.satuan||'',Number(g.volume||0),Number(g.harga_satuan||0),11,null,brand]);
+  const note=brand+(i===selectedIndex?' — Produk yang dipilih untuk reviu PPBJ':'');
+  const row=ws.addRow([i+1,g.nama_barang||'',g.satuan||'',Number(g.volume||0),Number(g.harga_satuan||0),11,null,note]);
   row.height=42;row.eachCell(c=>{c.font={name:'Arial',size:10};c.alignment={vertical:'middle',horizontal:[1,2,3,8].includes(c.col)?'left':'center',wrapText:true};c.border={top:{style:'thin'},bottom:{style:'thin'},left:{style:'thin'},right:{style:'thin'}};});
   row.getCell(5).numFmt='"Rp" #,##0';row.getCell(7).value={formula:'D'+row.number+'*E'+row.number+'*(1+F'+row.number+'/100)'};row.getCell(7).numFmt='"Rp" #,##0';row.getCell(6).numFmt='0"%"';
  });
