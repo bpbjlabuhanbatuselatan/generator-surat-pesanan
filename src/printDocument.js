@@ -55,7 +55,7 @@ export async function buildProcurementHtml(db, id) {
   const recommendationSections=goods.map((g,i)=>{
     let meta={};
     try{if(String(g.keterangan||'').startsWith('__PBJ_META__:'))meta=JSON.parse(String(g.keterangan).slice(13));}catch{}
-    const chosen=meta.rekomendasi_produk;
+    const chosen=g.produk_rekomendasi||meta.rekomendasi_produk;
     if(!chosen||(!String(chosen.merek||'').trim()&&!String(chosen.spesifikasi||'').trim()))return '';
     const recommendedName=[chosen.merek,chosen.spesifikasi].filter(Boolean).join(' / ');
     return '<section class="recommendation-product-section"><h4>PERTIMBANGAN DAN REKOMENDASI PRODUK</h4><p>Berdasarkan kesesuaian spesifikasi teknis dan kewajaran harga, dengan memperhatikan prinsip efisien dan efektif serta ketentuan penggunaan Produk Dalam Negeri dan UMK, direkomendasikan produk <strong class="recommended-product-name">'+esc(recommendedName)+'</strong>.</p><p>Usulan produk tersebut selanjutnya menjadi bahan reviu Pejabat Pengadaan untuk memastikan kesesuaian spesifikasi, harga, dan ketentuan pengadaan barang/jasa sebelum proses pengadaan dilanjutkan.</p></section>';
