@@ -185,7 +185,7 @@ function App(){
   for(let i=0;i<chosen.length;i++){
    const x=chosen[i];let foto_produk_path=x.foto_produk_path||null;
    if(x.foto){const ext=(x.foto.name.split('.').pop()||'jpg').replace(/[^a-z0-9]/gi,'').toLowerCase();const path=session.user.id+'/'+letterId+'/produk-'+(i+1)+'-'+Date.now()+'.'+ext;const up=await db.storage.from('foto-produk').upload(path,x.foto,{upsert:false,contentType:x.foto.type||'image/jpeg'});if(up.error){Err('Gagal upload foto produk: '+up.error.message);B(false);return}foto_produk_path=up.data.path}
-   goods.push({surat_id:letterId,nomor_urut:i+1,nama_barang:x.nama_barang.trim(),spesifikasi:x.spesifikasi||null,volume:Number(x.volume)||0,satuan:x.satuan||null,harga_satuan:itemHps[chosen.indexOf(x)]||0,pagu_dpa_rka:rupiahNumber(x.pagu_dpa_rka),keterangan:'__PBJ_META__'+JSON.stringify({catatan:x.keterangan||'',kategori_kebutuhan:x.kategori_kebutuhan||'',kategori_katalog:x.kategori_katalog||''}),produk_rekomendasi:x.rekomendasi_produk_index!==''&&x.produk_mirip?.[Number(x.rekomendasi_produk_index)]?x.produk_mirip[Number(x.rekomendasi_produk_index)]:null,foto_produk_path});
+   goods.push({surat_id:letterId,nomor_urut:i+1,nama_barang:x.nama_barang.trim(),spesifikasi:x.spesifikasi||null,volume:Number(x.volume)||0,satuan:x.satuan||null,harga_satuan:itemHps[chosen.indexOf(x)]||0,pagu_dpa_rka:rupiahNumber(x.pagu_dpa_rka),keterangan:'__PBJ_META__:'+JSON.stringify({catatan:x.keterangan||'',kategori_kebutuhan:x.kategori_kebutuhan||'',kategori_katalog:x.kategori_katalog||''}),produk_rekomendasi:x.rekomendasi_produk_index!==''&&x.produk_mirip?.[Number(x.rekomendasi_produk_index)]?x.produk_mirip[Number(x.rekomendasi_produk_index)]:null,foto_produk_path});
   }
   const vendors=[];
   for(let i=0;i<providers.length;i++){
