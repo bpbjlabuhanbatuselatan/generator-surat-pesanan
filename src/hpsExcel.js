@@ -36,7 +36,9 @@ export async function downloadHpsExcel(db,id){
   let meta={};try{if(String(g.keterangan||'').startsWith('__PBJ_META__:'))meta=JSON.parse(String(g.keterangan).slice(13));}catch{}
   const brand=[meta.merek_produk,meta.tipe_produk].filter(Boolean).join(' / ');
   const note=brand+(i===selectedIndex?' — Produk yang dipilih untuk reviu PPBJ':'');
-  const row=ws.addRow([i+1,g.nama_barang||'',g.satuan||'',Number(g.volume||0),Number(g.harga_satuan||0),11,null,note]);
+  const hargaTermasukPajak=Number(g.harga_satuan||0);
+  const hargaSebelumPajak=Math.round(hargaTermasukPajak*100/111);
+  const row=ws.addRow([i+1,g.nama_barang||'',g.satuan||'',Number(g.volume||0),hargaSebelumPajak,11,null,note]);
   row.height=42;row.eachCell(c=>{c.font={name:'Arial',size:10};c.alignment={vertical:'middle',horizontal:[1,2,3,8].includes(c.col)?'left':'center',wrapText:true};c.border={top:{style:'thin'},bottom:{style:'thin'},left:{style:'thin'},right:{style:'thin'}};});
   row.getCell(5).numFmt='"Rp" #,##0';row.getCell(7).value={formula:'D'+row.number+'*E'+row.number+'*(1+F'+row.number+'/100)'};row.getCell(7).numFmt='"Rp" #,##0';row.getCell(6).numFmt='0"%"';
  });
