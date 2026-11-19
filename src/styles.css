@@ -303,3 +303,14 @@
  .folder-breadcrumb{align-items:flex-start;flex-direction:column;gap:10px}
  .folder-breadcrumb>div{align-items:flex-start}
 }
+
+
+/* Master settings */
+.settings-form{margin-top:12px}
+.settings-list{display:flex;flex-direction:column;gap:9px;margin-top:18px}
+.settings-row{display:flex;align-items:center;gap:12px;padding:13px;border:1px solid #e4eaf0;border-radius:13px;background:#fbfcfe}
+.settings-avatar{width:40px;height:40px;flex:0 0 40px;border-radius:12px;display:grid;place-items:center;background:#eaf1f8;color:#28577e}
+.settings-row-copy{min-width:0;flex:1;display:flex;flex-direction:column;gap:5px}
+.settings-row-copy b{font-size:12px;color:#173653;overflow-wrap:anywhere}
+.settings-row-copy small{font-size:10px;color:#7d8c9b;line-height:1.5}
+@media(max-width:620px){.settings-row{flex-wrap:wrap;gap:8px}.settings-row-copy{flex-basis:calc(100% - 52px)}.settings-row .small-btn{flex:1}}
