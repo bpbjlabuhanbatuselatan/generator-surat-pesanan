@@ -26,12 +26,15 @@ export async function downloadHpsExcel(db,id){
  const wb=new ExcelJS.Workbook();wb.creator='Generator Dokumen PBJ';wb.subject='Harga Perkiraan Sendiri';wb.created=new Date();
  const ws=wb.addWorksheet('HPS',{pageSetup:{paperSize:wsPaper(),orientation:'landscape',fitToPage:true,fitToWidth:1,fitToHeight:0,margins:{left:0.25,right:0.25,top:0.45,bottom:0.45,header:0.2,footer:0.2}}});
  function wsPaper(){return 9}
- ws.columns=[{width:6},{width:34},{width:13},{width:9},{width:19},{width:13},{width:21},{width:31},{width:18,hidden:true}];
+ ws.columns=[{width:7},{width:32},{width:12},{width:9},{width:20},{width:12},{width:22},{width:30},{width:18,hidden:true}];
+ ws.properties.defaultRowHeight=24;
+ ws.pageSetup.horizontalCentered=true;
+ ws.pageSetup.verticalCentered=false;
  ws.mergeCells('A1:H1');ws.getCell('A1').value='HARGA PERKIRAAN SENDIRI';ws.getCell('A1').font={name:'Arial',size:16,bold:true};ws.getCell('A1').alignment={horizontal:'center',vertical:'middle'};ws.getRow(1).height=30;
  ws.mergeCells('A2:H2');ws.getCell('A2').value=d.nama_paket||'';ws.getCell('A2').font={name:'Arial',size:10,bold:true};ws.getCell('A2').alignment={horizontal:'center',vertical:'middle',wrapText:true};ws.getRow(2).height=28;
  ws.mergeCells('A3:H3');ws.getCell('A3').value=(d.nama_opd_snapshot||'')+(d.kode_rup?' | Kode RUP: '+d.kode_rup:'');ws.getCell('A3').font={name:'Arial',size:9};ws.getCell('A3').alignment={horizontal:'center',vertical:'middle'};ws.getRow(3).height=20;
  const headers=['No','Jenis Barang/Jasa','Satuan','Vol','Harga','Pajak (%)','Total','Keterangan'];
- const header=ws.getRow(5);header.values=headers;header.height=34;header.eachCell(c=>{c.font={name:'Arial',size:10,bold:true};c.alignment={horizontal:'center',vertical:'middle',wrapText:true};c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFD9E7F7'}};c.border={top:{style:'medium'},bottom:{style:'medium'},left:{style:'thin'},right:{style:'thin'}};});
+ const header=ws.getRow(5);header.values=headers;header.height=36;header.eachCell(c=>{c.font={name:'Arial',size:10,bold:true,color:{argb:'FF17365D'}};c.alignment={horizontal:'center',vertical:'middle',wrapText:true};c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFDCE6F1'}};c.border={top:{style:'medium',color:{argb:'FF526579'}},bottom:{style:'medium',color:{argb:'FF526579'}},left:{style:'thin',color:{argb:'FF9AA8B5'}},right:{style:'thin',color:{argb:'FF9AA8B5'}}};});
  goods.forEach((g,i)=>{
   let meta={};try{if(String(g.keterangan||'').startsWith('__PBJ_META__:'))meta=JSON.parse(String(g.keterangan).slice(13));}catch{}
   const brand=[meta.merek_produk,meta.tipe_produk].filter(Boolean).join(' / ');
@@ -41,10 +44,12 @@ export async function downloadHpsExcel(db,id){
   const totalTermasukPajak=hargaTermasukPajak*volume;
   const hargaSebelumPajakTotal=Math.round(totalTermasukPajak*100/111);
   const row=ws.addRow([i+1,g.nama_barang||'',g.satuan||'',volume,hargaSebelumPajakTotal,11,null,note,hargaTermasukPajak]);
-  row.height=42;row.eachCell(c=>{c.font={name:'Arial',size:10};c.alignment={vertical:'middle',horizontal:[1,2,3,8].includes(c.col)?'left':'center',wrapText:true};c.border={top:{style:'thin'},bottom:{style:'thin'},left:{style:'thin'},right:{style:'thin'}};});
-  row.getCell(5).numFmt='"Rp" #,##0';row.getCell(7).value={formula:'D'+row.number+'*I'+row.number};row.getCell(7).numFmt='"Rp" #,##0';row.getCell(6).numFmt='0"%"';
+  row.height=38;row.eachCell(c=>{c.font={name:'Arial',size:10,color:{argb:'FF202A35'}};c.alignment={vertical:'middle',horizontal:[1,2,3,8].includes(c.col)?'left':([5,7,9].includes(c.col)?'right':'center'),wrapText:true,indent:[2,8].includes(c.col)?1:0};c.border={top:{style:'thin',color:{argb:'FFB8C2CC'}},bottom:{style:'thin',color:{argb:'FFB8C2CC'}},left:{style:'thin',color:{argb:'FFB8C2CC'}},right:{style:'thin',color:{argb:'FFB8C2CC'}}};if(i%2===1&&c.col<=8)c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFF5F8FB'}};});
+  row.getCell(1).alignment={horizontal:'center',vertical:'middle'};
+  row.getCell(4).alignment={horizontal:'center',vertical:'middle'};
+  row.getCell(5).numFmt='"Rp" #,##0';row.getCell(7).value={formula:'D'+row.number+'*I'+row.number};row.getCell(7).numFmt='"Rp" #,##0';row.getCell(7).alignment={horizontal:'right',vertical:'middle'};row.getCell(6).numFmt='0"%"';row.getCell(6).alignment={horizontal:'center',vertical:'middle'};
  });
- const totalRow=ws.addRow(['','','','','','TOTAL',{formula:'SUM(G6:G'+(5+goods.length)+')'},'']);totalRow.height=28;ws.mergeCells(totalRow.number,1,totalRow.number,6);totalRow.getCell(1).value='TOTAL';totalRow.getCell(1).alignment={horizontal:'center',vertical:'middle'};totalRow.getCell(7).numFmt='"Rp" #,##0';totalRow.eachCell(c=>{c.font={name:'Arial',size:11,bold:true};c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFEAF0F6'}};c.border={top:{style:'medium'},bottom:{style:'medium'},left:{style:'thin'},right:{style:'thin'}};});
+ const totalRow=ws.addRow(['','','','','','TOTAL',{formula:'SUM(G6:G'+(5+goods.length)+')'},'']);totalRow.height=32;ws.mergeCells(totalRow.number,1,totalRow.number,6);totalRow.getCell(1).value='TOTAL';totalRow.getCell(1).alignment={horizontal:'center',vertical:'middle'};totalRow.getCell(7).numFmt='"Rp" #,##0';totalRow.getCell(7).alignment={horizontal:'right',vertical:'middle',indent:1};totalRow.eachCell(c=>{c.font={name:'Arial',size:11,bold:true,color:{argb:'FF17365D'}};c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFEAF0F6'}};c.border={top:{style:'medium',color:{argb:'FF526579'}},bottom:{style:'double',color:{argb:'FF526579'}},left:{style:'thin',color:{argb:'FF9AA8B5'}},right:{style:'thin',color:{argb:'FF9AA8B5'}};});
  const signRow=totalRow.number+3;ws.mergeCells(signRow,1,signRow,4);ws.mergeCells(signRow,5,signRow,8);
  ws.getCell(signRow,1).value='Mengetahui,\nPPK';ws.getCell(signRow,5).value='PPTK';[1,5].forEach(col=>{const c=ws.getCell(signRow,col);c.font={name:'Arial',size:10,bold:true};c.alignment={horizontal:'center',vertical:'middle',wrapText:true};});ws.getRow(signRow).height=34;
  ws.mergeCells(signRow+1,1,signRow+1,4);ws.mergeCells(signRow+1,5,signRow+1,8);ws.getRow(signRow+1).height=62;
