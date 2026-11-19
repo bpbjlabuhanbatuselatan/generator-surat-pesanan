@@ -18,7 +18,7 @@ export async function buildProcurementHtml(db, id) {
     if(opdError) throw opdError;
     if(opd?.kop_surat_path){const signed=await db.storage.from('kop-surat').createSignedUrl(opd.kop_surat_path,300);letterheadUrl=signed.data?.signedUrl||'';}if(opd?.stempel_path){const signedStamp=await db.storage.from('tanda-tangan').createSignedUrl(opd.stempel_path,300);stampUrl=signedStamp.data?.signedUrl||'';}
   }
-  if(!stampUrl&&String(d.nama_opd_snapshot||'').toUpperCase().includes('DINAS PERPUSTAKAAN DAN ARSIP'))stampUrl=opdStampFallback;
+  if(!stampUrl&&String(d.nama_opd_snapshot||'').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toUpperCase().replace(/[^A-Z0-9]+/g,' ').trim()==='DINAS PERPUSTAKAAN DAN ARSIP')stampUrl=opdStampFallback;
   for (const item of goods) {
     if (item.foto_produk_path) {
       const signed = await db.storage.from('foto-produk').createSignedUrl(item.foto_produk_path, 300);
@@ -168,7 +168,7 @@ export async function buildReviewHtml(db,id){
   const esc=v=>String(v??'—').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const rp=v=>v==null||v===''?'—':new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(Number(v));
   const d=s.data,r=review.data,goods=items.data||[],vendors=providers.data||[],signers=officials.data||[];
-  let stampUrl='';if(d.opd_id){const {data:opd,error:opdError}=await db.from('opd').select('stempel_path').eq('id',d.opd_id).maybeSingle();if(opdError)throw opdError;if(opd?.stempel_path){const signed=await db.storage.from('tanda-tangan').createSignedUrl(opd.stempel_path,300);stampUrl=signed.data?.signedUrl||'';}}if(!stampUrl&&String(d.nama_opd_snapshot||'').toUpperCase().includes('DINAS PERPUSTAKAAN DAN ARSIP'))stampUrl=opdStampFallback;
+  let stampUrl='';if(d.opd_id){const {data:opd,error:opdError}=await db.from('opd').select('stempel_path').eq('id',d.opd_id).maybeSingle();if(opdError)throw opdError;if(opd?.stempel_path){const signed=await db.storage.from('tanda-tangan').createSignedUrl(opd.stempel_path,300);stampUrl=signed.data?.signedUrl||'';}}if(!stampUrl&&String(d.nama_opd_snapshot||'').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toUpperCase().replace(/[^A-Z0-9]+/g,' ').trim()==='DINAS PERPUSTAKAAN DAN ARSIP')stampUrl=opdStampFallback;
   for(const x of goods)if(x.foto_produk_path){const q=await db.storage.from('foto-produk').createSignedUrl(x.foto_produk_path,300);x.foto_signed_url=q.data?.signedUrl||'';}
   for(const v of vendors){try{v.reference_detail=JSON.parse(v.keterangan||'{}');const path=v.reference_detail.foto_path;if(path){const q=await db.storage.from('dokumen-pendukung').createSignedUrl(path,300);v.reference_photo_url=q.data?.signedUrl||'';}}catch{v.reference_detail={};}}
   for(const x of signers)if(x.tanda_tangan_path_snapshot){const q=await db.storage.from('tanda-tangan').createSignedUrl(x.tanda_tangan_path_snapshot,300);x.signature_url=q.data?.signedUrl||'';}
