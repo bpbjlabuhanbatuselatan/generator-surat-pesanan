@@ -81,7 +81,7 @@
 .actions{position:sticky;bottom:0;z-index:6;background:#fffffff2;backdrop-filter:blur(12px);padding:14px;margin:20px -2px -2px;border-top:1px solid #dce6ef}
 .nav{min-height:42px}
 @media(max-width:620px){
- .shell aside{position:fixed;z-index:20;inset:auto 0 0;width:100%;height:68px;padding:6px 9px calc(6px + env(safe-area-inset-bottom));display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;background:#0c2442;border-top:1px solid #c89b45;box-shadow:0 -7px 24px #07192d30}
+ .shell aside{position:fixed;z-index:20;inset:auto 0 0;width:100%;height:68px;padding:6px 9px calc(6px + env(safe-area-inset-bottom));display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;background:#0c2442;border-top:1px solid #c89b45;box-shadow:0 -7px 24px #07192d30}
  .brand,.menu-label,.side-bottom{display:none!important}
  .shell aside .nav{margin:0;min-height:52px;padding:5px 3px;display:flex;flex-direction:column;justify-content:center;gap:3px;border-radius:9px;font-size:9px;line-height:1.1;text-align:center}
  .shell aside .nav svg{width:19px;height:19px}
@@ -170,7 +170,7 @@
   .shell{min-height:100dvh;background:#f3f6fa}
   .shell aside{
     position:fixed;z-index:50;inset:auto 0 0;width:100%;height:68px;
-    display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;
+    display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;
     padding:6px 10px calc(6px + env(safe-area-inset-bottom));
     background:rgba(13,37,65,.97);backdrop-filter:blur(16px);
     box-shadow:0 -8px 28px #102b4e20;border-top:1px solid #ffffff20
