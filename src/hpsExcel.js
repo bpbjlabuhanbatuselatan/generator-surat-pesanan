@@ -26,7 +26,7 @@ export async function downloadHpsExcel(db,id){
  const wb=new ExcelJS.Workbook();wb.creator='Generator Dokumen PBJ';wb.subject='Harga Perkiraan Sendiri';wb.created=new Date();
  const ws=wb.addWorksheet('HPS',{pageSetup:{paperSize:wsPaper(),orientation:'landscape',fitToPage:true,fitToWidth:1,fitToHeight:0,margins:{left:0.25,right:0.25,top:0.45,bottom:0.45,header:0.2,footer:0.2}}});
  function wsPaper(){return 9}
- ws.columns=[{width:6},{width:34},{width:13},{width:9},{width:19},{width:13},{width:21},{width:31}];
+ ws.columns=[{width:6},{width:34},{width:13},{width:9},{width:19},{width:13},{width:21},{width:31},{width:18,hidden:true}];
  ws.mergeCells('A1:H1');ws.getCell('A1').value='HARGA PERKIRAAN SENDIRI';ws.getCell('A1').font={name:'Arial',size:16,bold:true};ws.getCell('A1').alignment={horizontal:'center',vertical:'middle'};ws.getRow(1).height=30;
  ws.mergeCells('A2:H2');ws.getCell('A2').value=d.nama_paket||'';ws.getCell('A2').font={name:'Arial',size:10,bold:true};ws.getCell('A2').alignment={horizontal:'center',vertical:'middle',wrapText:true};ws.getRow(2).height=28;
  ws.mergeCells('A3:H3');ws.getCell('A3').value=(d.nama_opd_snapshot||'')+(d.kode_rup?' | Kode RUP: '+d.kode_rup:'');ws.getCell('A3').font={name:'Arial',size:9};ws.getCell('A3').alignment={horizontal:'center',vertical:'middle'};ws.getRow(3).height=20;
@@ -37,10 +37,12 @@ export async function downloadHpsExcel(db,id){
   const brand=[meta.merek_produk,meta.tipe_produk].filter(Boolean).join(' / ');
   const note=brand+(i===selectedIndex?' — Produk yang dipilih untuk reviu PPBJ':'');
   const hargaTermasukPajak=Number(g.harga_satuan||0);
-  const hargaSebelumPajak=Math.round(hargaTermasukPajak*100/111);
-  const row=ws.addRow([i+1,g.nama_barang||'',g.satuan||'',Number(g.volume||0),hargaSebelumPajak,11,null,note]);
+  const volume=Number(g.volume||0);
+  const totalTermasukPajak=hargaTermasukPajak*volume;
+  const hargaSebelumPajakTotal=Math.round(totalTermasukPajak*100/111);
+  const row=ws.addRow([i+1,g.nama_barang||'',g.satuan||'',volume,hargaSebelumPajakTotal,11,null,note,hargaTermasukPajak]);
   row.height=42;row.eachCell(c=>{c.font={name:'Arial',size:10};c.alignment={vertical:'middle',horizontal:[1,2,3,8].includes(c.col)?'left':'center',wrapText:true};c.border={top:{style:'thin'},bottom:{style:'thin'},left:{style:'thin'},right:{style:'thin'}};});
-  row.getCell(5).numFmt='"Rp" #,##0';row.getCell(7).value={formula:'D'+row.number+'*E'+row.number+'*(1+F'+row.number+'/100)'};row.getCell(7).numFmt='"Rp" #,##0';row.getCell(6).numFmt='0"%"';
+  row.getCell(5).numFmt='"Rp" #,##0';row.getCell(7).value={formula:'D'+row.number+'*I'+row.number};row.getCell(7).numFmt='"Rp" #,##0';row.getCell(6).numFmt='0"%"';
  });
  const totalRow=ws.addRow(['','','','','','TOTAL',{formula:'SUM(G6:G'+(5+goods.length)+')'},'']);totalRow.height=28;ws.mergeCells(totalRow.number,1,totalRow.number,6);totalRow.getCell(1).value='TOTAL';totalRow.getCell(1).alignment={horizontal:'center',vertical:'middle'};totalRow.getCell(7).numFmt='"Rp" #,##0';totalRow.eachCell(c=>{c.font={name:'Arial',size:11,bold:true};c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFEAF0F6'}};c.border={top:{style:'medium'},bottom:{style:'medium'},left:{style:'thin'},right:{style:'thin'}};});
  const signRow=totalRow.number+3;ws.mergeCells(signRow,1,signRow,4);ws.mergeCells(signRow,5,signRow,8);
