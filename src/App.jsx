@@ -20,7 +20,7 @@ function Login({onLogin,error,busy}){const [email,E]=useState(''),[password,P]=u
 function Field({label,value,set,type='text',required=false,placeholder='',wide=false}){
  const listId=useId();
  const key='pbj-autosuggest-v1:'+String(label||'').trim().toLowerCase();
- const sensitive=/\\b(nip|email|password|kata sandi)\\b|nomor surat/i.test(String(label||''));
+ const sensitive=/\b(nip|email|password|kata sandi)\b|nomor surat/i.test(String(label||''));
  const enabled=type==='text'&&!sensitive;
  const [suggestions,setSuggestions]=useState(()=>{if(!enabled)return [];try{const data=JSON.parse(localStorage.getItem(key)||'[]');return Array.isArray(data)?data.filter(x=>typeof x==='string').slice(0,15):[]}catch{return []}});
  const remember=()=>{const text=String(value??'').trim();if(!enabled||text.length<2)return;try{const next=[text,...suggestions.filter(x=>x.toLowerCase()!==text.toLowerCase())].slice(0,15);localStorage.setItem(key,JSON.stringify(next));setSuggestions(next)}catch{}};
