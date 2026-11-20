@@ -98,18 +98,29 @@ function App(){
   const copied=[];
   try{
    const id=row.id;
-   const [src,g,p,d,r]=await Promise.all([
+   const [src,g,p,d]=await Promise.all([
     db.from('surat').select('*').eq('id',id).single(),
     db.from('detail_barang').select('*').eq('surat_id',id).order('nomor_urut'),
     db.from('surat_pejabat').select('*').eq('surat_id',id).order('created_at'),
-    db.from('dokumen_pendukung').select('*').eq('surat_id',id).order('nomor_urut'),
-    db.from('reviu').select('*').eq('surat_id',id).order('created_at')
+    db.from('dokumen_pendukung').select('*').eq('surat_id',id).order('nomor_urut')
    ]);
-   for(const q of [src,g,p,d,r])if(q.error)throw q.error;
+   for(const q of [src,g,p,d])if(q.error)throw q.error;
    const clean=x=>{const y={...x};['id','created_at','updated_at'].forEach(k=>delete y[k]);return y};
    const base=clean(src.data);base.nomor_surat='';base.tanggal_surat=null;base.status='draft';
    const made=await db.from('surat').insert(base).select('id').single();if(made.error)throw made.error;
    const newId=made.data.id;
+   // Pastikan salinan baru benar-benar dimulai tanpa pembanding/penyedia lama.
+   // Delete ini juga membersihkan baris yang mungkin dibuat trigger/default database.
+   for(const table of ['penyedia','referensi_harga','reviu']){
+    const cleared=await db.from(table).delete().eq('surat_id',newId);
+    if(cleared.error)throw new Error('Gagal mengosongkan '+table+' pada salinan baru: '+cleared.error.message);
+   }
+   const [checkProviders,checkPrices]=await Promise.all([
+    db.from('penyedia').select('id').eq('surat_id',newId),
+    db.from('referensi_harga').select('id').eq('surat_id',newId)
+   ]);
+   if(checkProviders.error||checkPrices.error)throw new Error('Gagal memverifikasi salinan tanpa pembanding.');
+   if((checkProviders.data||[]).length||(checkPrices.data||[]).length)throw new Error('Salinan baru masih memiliki data penyedia atau referensi harga. Proses dihentikan agar data lama tidak tercampur.');
    const copyObject=async(bucket,path,label)=>{if(!path)return null;const ext=path.includes('.')?path.split('.').pop():'bin';const target=session.user.id+'/'+newId+'/'+label+'-'+Date.now()+'-'+Math.random().toString(36).slice(2,8)+'.'+ext;const out=await db.storage.from(bucket).copy(path,target);if(out.error)throw new Error('Gagal menyalin file '+path+': '+out.error.message);copied.push({bucket,path:target});return target};
    const sourceGoods=(g.data||[]).filter(x=>String(x.nama_barang||'').trim());
    const goods=[];
@@ -122,11 +133,10 @@ function App(){
    for(let i=0;i<(p.data||[]).length;i++){const x=clean(p.data[i]);officials.push({...x,surat_id:newId,tanda_tangan_path_snapshot:await copyObject('tanda-tangan',x.tanda_tangan_path_snapshot,'ttd-'+(i+1))})}
    if(officials.length){const out=await db.from('surat_pejabat').insert(officials);if(out.error)throw out.error}
    const docs=[];
-   for(let i=0;i<(d.data||[]).length;i++){const x=clean(d.data[i]);docs.push({...x,surat_id:newId,storage_path:await copyObject('dokumen-pendukung',x.storage_path,'lampiran-'+(i+1))})}
+   const copyableDocs=(d.data||[]).filter(x=>!String(x.kategori||'').startsWith('Bukti Reviu - ')&&!String(x.kategori||'').startsWith('Review - '));
+   for(let i=0;i<copyableDocs.length;i++){const x=clean(copyableDocs[i]);docs.push({...x,surat_id:newId,storage_path:await copyObject('dokumen-pendukung',x.storage_path,'lampiran-'+(i+1))})}
    if(docs.length){const out=await db.from('dokumen_pendukung').insert(docs);if(out.error)throw out.error}
-   const reviews=(r.data||[]).map(x=>({...clean(x),surat_id:newId}));
-   if(reviews.length){const out=await db.from('reviu').insert(reviews);if(out.error)throw out.error}
-   N('Salinan berhasil dibuat lengkap. Silakan Edit untuk mengganti OPD, nomor surat, dan tanggal. Dokumen asli tetap aman.');await load();
+   N('Salinan baru berhasil dibuat. Data penyedia, pembanding, referensi harga, dan reviu lama dikosongkan. Dokumen sumber tetap aman.');await load();
   }catch(e){
    Err('Salin surat belum berhasil: '+(e.message||e)+'. Dokumen sumber tidak diubah. Jika proses sempat membuat draft, periksa daftar surat sebelum mencoba lagi.');
    await load();
