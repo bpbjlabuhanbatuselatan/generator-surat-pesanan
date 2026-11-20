@@ -96,6 +96,7 @@ function App(){
   if(!window.confirm('Salin kertas kerja "'+(row.nama_paket||'')+'"? Data paket dan produk, pejabat, serta lampiran akan disalin. Data penyedia dan seluruh pembanding/referensi harga TIDAK disalin agar tidak terbawa ke pekerjaan baru. Dokumen asal tidak berubah.'))return;
   B(true);Err('');N('');
   const copied=[];
+  let newId=null;
   try{
    const id=row.id;
    const [src,g,p,d]=await Promise.all([
@@ -108,7 +109,7 @@ function App(){
    const clean=x=>{const y={...x};['id','created_at','updated_at'].forEach(k=>delete y[k]);return y};
    const base=clean(src.data);base.nomor_surat='';base.tanggal_surat=null;base.status='draft';
    const made=await db.from('surat').insert(base).select('id').single();if(made.error)throw made.error;
-   const newId=made.data.id;
+   newId=made.data.id;
    // Pastikan salinan baru benar-benar dimulai tanpa pembanding/penyedia lama.
    // Delete ini juga membersihkan baris yang mungkin dibuat trigger/default database.
    for(const table of ['penyedia','referensi_harga','reviu']){
@@ -136,9 +137,26 @@ function App(){
    const copyableDocs=(d.data||[]).filter(x=>!String(x.kategori||'').startsWith('Bukti Reviu - ')&&!String(x.kategori||'').startsWith('Review - '));
    for(let i=0;i<copyableDocs.length;i++){const x=clean(copyableDocs[i]);docs.push({...x,surat_id:newId,storage_path:await copyObject('dokumen-pendukung',x.storage_path,'lampiran-'+(i+1))})}
    if(docs.length){const out=await db.from('dokumen_pendukung').insert(docs);if(out.error)throw out.error}
-   N('Salinan baru berhasil dibuat. Data penyedia, pembanding, referensi harga, dan reviu lama dikosongkan. Dokumen sumber tetap aman.');await load();
+   // Bersihkan lagi SETELAH semua produk/lampiran disalin, lalu verifikasi kondisi akhir.
+   for(const table of ['penyedia','referensi_harga','reviu']){
+    const cleared=await db.from(table).delete().eq('surat_id',newId);
+    if(cleared.error)throw new Error('Gagal memastikan '+table+' kosong pada salinan baru: '+cleared.error.message);
+   }
+   const [finalProviders,finalPrices,finalReviews]=await Promise.all([
+    db.from('penyedia').select('id').eq('surat_id',newId),
+    db.from('referensi_harga').select('id').eq('surat_id',newId),
+    db.from('reviu').select('id').eq('surat_id',newId)
+   ]);
+   if(finalProviders.error||finalPrices.error||finalReviews.error)throw new Error('Pemeriksaan akhir data pembanding salinan gagal.');
+   if((finalProviders.data||[]).length||(finalPrices.data||[]).length||(finalReviews.data||[]).length)throw new Error('Data penyedia/pembanding lama masih terdeteksi setelah proses salin. Draft dibatalkan agar tidak tercampur.');
+   N('Salinan baru berhasil dibuat. Data penyedia, pembanding, referensi harga, dan reviu lama sudah diverifikasi kosong. Dokumen sumber tetap aman.');await load();
   }catch(e){
-   Err('Salin surat belum berhasil: '+(e.message||e)+'. Dokumen sumber tidak diubah. Jika proses sempat membuat draft, periksa daftar surat sebelum mencoba lagi.');
+   if(newId){
+    for(const table of ['referensi_harga','penyedia','reviu','dokumen_pendukung','surat_pejabat','detail_barang']){try{await db.from(table).delete().eq('surat_id',newId)}catch{}}
+    for(const bucket of ['foto-produk','dokumen-pendukung','tanda-tangan']){const paths=copied.filter(x=>x.bucket===bucket).map(x=>x.path);if(paths.length){try{await db.storage.from(bucket).remove(paths)}catch{}}}
+    try{await db.from('surat').delete().eq('id',newId)}catch{}
+   }
+   Err('Salin surat dibatalkan: '+(e.message||e)+'. Data sumber tetap aman dan draft salinan yang gagal dibersihkan.');
    await load();
   }finally{B(false)}
  }
