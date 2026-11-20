@@ -45,7 +45,7 @@ export async function buildProcurementHtml(db, id) {
   ]);
   const error = [s, items, providers, refs, docs, officials, review].find(x => x.error);
   if (error) throw error.error;
-  const d = s.data, goods = (items.data || []).filter(x=>String(x.nama_barang||'').trim()), vendors = providers.data || [], prices = refs.data || [], files = (docs.data || []).filter((x,i,a)=>x.storage_path?a.findIndex(y=>y.storage_path===x.storage_path)===i:a.findIndex(y=>y.id===x.id)===i).filter(x=>!String(x.kategori||'').startsWith('Bukti Reviu - ')&&!String(x.kategori||'').startsWith('Review - ')), signers = officials.data || [];
+  const d = s.data, goods = (items.data || []).filter(x=>String(x.nama_barang||'').trim()), vendors = providers.data || [], prices = refs.data || [], files = (docs.data || []).filter((x,i,a)=>{const key=y=>y.storage_path?'path:'+y.storage_path:'file:'+String(y.kategori||'').trim().toLowerCase()+'|'+String(y.nama_file||'').trim().toLowerCase()+'|'+String(y.ukuran_bytes??'');return a.findIndex(y=>key(y)===key(x))===i}).filter(x=>!String(x.kategori||'').startsWith('Bukti Reviu - ')&&!String(x.kategori||'').startsWith('Review - ')), signers = officials.data || [];
   let letterheadUrl='',stampUrl='';
   if(d.opd_id){
     const {data:opd,error:opdError}=await db.from('opd').select('kop_surat_path,stempel_path').eq('id',d.opd_id).maybeSingle();
@@ -208,7 +208,7 @@ export async function buildReviewHtml(db,id){
   for(const x of goods)if(x.foto_produk_path){const q=await db.storage.from('foto-produk').createSignedUrl(x.foto_produk_path,300);x.foto_signed_url=q.data?.signedUrl||'';}
   for(const v of vendors){try{v.reference_detail=JSON.parse(v.keterangan||'{}');const path=v.reference_detail.foto_path;if(path){const q=await db.storage.from('dokumen-pendukung').createSignedUrl(path,300);v.reference_photo_url=q.data?.signedUrl||'';}}catch{v.reference_detail={};}}
   for(const x of signers)if(x.tanda_tangan_path_snapshot){const q=await db.storage.from('tanda-tangan').createSignedUrl(x.tanda_tangan_path_snapshot,300);x.signature_url=q.data?.signedUrl||'';}
-  const uniqueDocuments=(documents.data||[]).filter((x,i,a)=>x.storage_path?a.findIndex(y=>y.storage_path===x.storage_path)===i:a.findIndex(y=>y.id===x.id)===i);const supporting=uniqueDocuments.filter(x=>!['Data SIRUP','DPA / RKA','RKA','SIRUP'].includes(String(x.kategori||'').trim()));for(const x of supporting)if(x.storage_path){const q=await db.storage.from('dokumen-pendukung').createSignedUrl(x.storage_path,300);x.signed_url=q.data?.signedUrl||'';}
+  const uniqueDocuments=(documents.data||[]).filter((x,i,a)=>{const key=y=>y.storage_path?'path:'+y.storage_path:'file:'+String(y.kategori||'').trim().toLowerCase()+'|'+String(y.nama_file||'').trim().toLowerCase()+'|'+String(y.ukuran_bytes??'');return a.findIndex(y=>key(y)===key(x))===i});const supporting=uniqueDocuments.filter(x=>!['Data SIRUP','DPA / RKA','RKA','SIRUP'].includes(String(x.kategori||'').trim()));for(const x of supporting)if(x.storage_path){const q=await db.storage.from('dokumen-pendukung').createSignedUrl(x.storage_path,300);x.signed_url=q.data?.signedUrl||'';}
   const ppbjSignature='<div class="signature-cell ppbj-signature-cell"><div class="signature-role">PEJABAT PENGADAAN BARANG/JASA</div><div class="signature-space"><img class="ppbj-signature" src="'+ppbjSignatureData+'" alt="Tanda tangan Pejabat Pengadaan Barang/Jasa"></div><b>ALI AKBAR, SE</b><br>NIP. 199203032022031004</div>';
   const signatureBlock=role=>{
     const p=signers.find(x=>x.peran===role);
