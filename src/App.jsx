@@ -93,21 +93,19 @@ function App(){
   finally{B(false)}
  }
  async function copySurat(row){
-  if(!window.confirm('Salin seluruh isi surat "'+(row.nama_paket||'')+'"? Produk, referensi penyedia, reviu, tanda tangan, dan semua lampiran akan disalin menjadi dokumen baru. Dokumen asal tidak berubah.'))return;
+  if(!window.confirm('Salin kertas kerja "'+(row.nama_paket||'')+'"? Data paket dan produk, pejabat, serta lampiran akan disalin. Data penyedia dan seluruh pembanding/referensi harga TIDAK disalin agar tidak terbawa ke pekerjaan baru. Dokumen asal tidak berubah.'))return;
   B(true);Err('');N('');
   const copied=[];
   try{
    const id=row.id;
-   const [src,g,v,p,d,r,h]=await Promise.all([
+   const [src,g,p,d,r]=await Promise.all([
     db.from('surat').select('*').eq('id',id).single(),
     db.from('detail_barang').select('*').eq('surat_id',id).order('nomor_urut'),
-    db.from('penyedia').select('*').eq('surat_id',id).order('created_at'),
     db.from('surat_pejabat').select('*').eq('surat_id',id).order('created_at'),
     db.from('dokumen_pendukung').select('*').eq('surat_id',id).order('nomor_urut'),
-    db.from('reviu').select('*').eq('surat_id',id).order('created_at'),
-    db.from('referensi_harga').select('*').eq('surat_id',id)
+    db.from('reviu').select('*').eq('surat_id',id).order('created_at')
    ]);
-   for(const q of [src,g,v,p,d,r,h])if(q.error)throw q.error;
+   for(const q of [src,g,p,d,r])if(q.error)throw q.error;
    const clean=x=>{const y={...x};['id','created_at','updated_at'].forEach(k=>delete y[k]);return y};
    const base=clean(src.data);base.nomor_surat='';base.tanggal_surat=null;base.status='draft';
    const made=await db.from('surat').insert(base).select('id').single();if(made.error)throw made.error;
@@ -118,12 +116,8 @@ function App(){
    for(let i=0;i<sourceGoods.length;i++){const x=clean(sourceGoods[i]);const path=await copyObject('foto-produk',x.foto_produk_path,'produk-'+(i+1));goods.push({...x,nomor_urut:i+1,surat_id:newId,foto_produk_path:path})}
    let insertedGoods=[];if(goods.length){const out=await db.from('detail_barang').insert(goods).select('id,nomor_urut');if(out.error)throw out.error;insertedGoods=out.data||[]}
    const idMap=new Map();sourceGoods.forEach((x,i)=>{const match=insertedGoods.find(z=>z.nomor_urut===i+1)||insertedGoods[i];if(match)idMap.set(x.id,match.id)});
-   const vendors=[];
-   const activeSourceVendors=(v.data||[]).filter(row=>{let detail={};try{detail=JSON.parse(row.keterangan||'{}')}catch{};const hasName=String(row.nama_penyedia||'').trim().length>0;const idx=Number.isInteger(detail.product_index)?detail.product_index:0;return hasName&&sourceGoods.length>0&&(sourceGoods.length===1||idx>=0&&idx<sourceGoods.length)});
-   for(let i=0;i<activeSourceVendors.length;i++){const x=clean(activeSourceVendors[i]);let detail={};try{detail=JSON.parse(x.keterangan||'{}')}catch{};detail.product_index=sourceGoods.length===1?0:(Number.isInteger(detail.product_index)?detail.product_index:0);detail.foto_path=null;vendors.push({...x,surat_id:newId,keterangan:JSON.stringify(detail)})}
-   if(vendors.length){const out=await db.from('penyedia').insert(vendors);if(out.error)throw out.error}
-   const refs=(h.data||[]).filter(x=>idMap.has(x.detail_barang_id)).map(x=>({...clean(x),surat_id:newId,detail_barang_id:idMap.get(x.detail_barang_id)}));
-   if(refs.length){const out=await db.from('referensi_harga').insert(refs);if(out.error)throw out.error}
+   // Data penyedia dan referensi harga sengaja tidak disalin ke kertas kerja baru.
+   // Pembanding harus diisi ulang berdasarkan survei untuk pekerjaan yang baru.
    const officials=[];
    for(let i=0;i<(p.data||[]).length;i++){const x=clean(p.data[i]);officials.push({...x,surat_id:newId,tanda_tangan_path_snapshot:await copyObject('tanda-tangan',x.tanda_tangan_path_snapshot,'ttd-'+(i+1))})}
    if(officials.length){const out=await db.from('surat_pejabat').insert(officials);if(out.error)throw out.error}
