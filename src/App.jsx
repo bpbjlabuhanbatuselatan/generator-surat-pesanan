@@ -108,7 +108,7 @@ function App(){
    ]);
    for(const q of [src,g,p,d])if(q.error)throw q.error;
    const clean=x=>{const y={...x};['id','created_at','updated_at'].forEach(k=>delete y[k]);return y};
-   const base=clean(src.data);base.nomor_surat='';base.tanggal_surat=null;base.status='draft';
+   const base=clean(src.data);base.nomor_surat='';base.tanggal_surat=null;base.status='draft';base.nilai_hps=null;
    const made=await db.from('surat').insert(base).select('id').single();if(made.error)throw made.error;
    newId=made.data.id;
    // Pastikan salinan baru benar-benar dimulai tanpa pembanding/penyedia lama.
@@ -126,7 +126,7 @@ function App(){
    const copyObject=async(bucket,path,label)=>{if(!path)return null;const ext=path.includes('.')?path.split('.').pop():'bin';const target=session.user.id+'/'+newId+'/'+label+'-'+Date.now()+'-'+Math.random().toString(36).slice(2,8)+'.'+ext;const out=await db.storage.from(bucket).copy(path,target);if(out.error)throw new Error('Gagal menyalin file '+path+': '+out.error.message);copied.push({bucket,path:target});return target};
    const sourceGoods=(g.data||[]).filter(x=>String(x.nama_barang||'').trim());
    const goods=[];
-   for(let i=0;i<sourceGoods.length;i++){const x=clean(sourceGoods[i]);const path=await copyObject('foto-produk',x.foto_produk_path,'produk-'+(i+1));goods.push({...x,nomor_urut:i+1,surat_id:newId,foto_produk_path:path})}
+   for(let i=0;i<sourceGoods.length;i++){const x=clean(sourceGoods[i]);const path=await copyObject('foto-produk',x.foto_produk_path,'produk-'+(i+1));goods.push({...x,nomor_urut:i+1,surat_id:newId,harga_satuan:null,foto_produk_path:path})}
    let insertedGoods=[];if(goods.length){const out=await db.from('detail_barang').insert(goods).select('id,nomor_urut');if(out.error)throw out.error;insertedGoods=out.data||[]}
    const idMap=new Map();sourceGoods.forEach((x,i)=>{const match=insertedGoods.find(z=>z.nomor_urut===i+1)||insertedGoods[i];if(match)idMap.set(x.id,match.id)});
    // Data penyedia dan referensi harga sengaja tidak disalin ke kertas kerja baru.
