@@ -333,8 +333,9 @@ export async function openProcurementPrint(db, id) {
   catch(error){w.close();throw error;}
 }
 
-export async function openAllDocumentsPrint(db,id){
-  const w=reservePrintWindow('Menyiapkan seluruh dokumen...','Izinkan pop-up browser untuk mencetak seluruh dokumen.');
+export async function openAllDocumentsPrint(db,id,preopenedWindow=null){
+  const w=preopenedWindow||reservePrintWindow('Menyiapkan seluruh dokumen...','Izinkan pop-up browser untuk mencetak seluruh dokumen.');
+  if(preopenedWindow){w.document.open();w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>Menyiapkan dokumen</title></head><body style="font:16px Arial;padding:32px">Menyiapkan seluruh dokumen...</body></html>');w.document.close();}
   try{
   const [surat,koordinasi,reviu]=await Promise.all([
     buildProcurementHtml(db,id),
@@ -383,5 +384,5 @@ export async function openAllDocumentsPrint(db,id){
     '\n@page{size:A4 portrait!important;margin:0!important}*{box-sizing:border-box}html,body{width:210mm!important;margin:0!important;padding:0!important;background:#fff!important}body{overflow:visible!important}.combined-part{display:block;position:relative;width:210mm!important;margin:0!important;padding:0!important;break-before:auto;page-break-before:auto}.combined-part-2,.combined-part-3{break-before:page;page-break-before:always}.combined-part-1 .page:last-of-type,.combined-part-2 .page:last-of-type,.combined-part-3 .page:last-of-type{break-after:auto!important;page-break-after:auto!important}.combined-part-3 .page{width:210mm!important;min-height:0!important;height:auto!important;margin:0!important;padding:18mm 15mm 20mm 20mm!important;-webkit-box-decoration-break:clone!important;box-decoration-break:clone!important;overflow:visible!important;box-shadow:none!important;break-inside:auto!important;page-break-inside:auto!important}.combined-part-3 .page.work-page,.combined-part-3 .page.attachment-page{break-before:auto!important;page-break-before:auto!important}.combined-part-3 table{max-width:100%!important}.combined-part-3 tr{break-inside:avoid;page-break-inside:avoid}@media screen{html,body{width:auto!important;background:#e8ebef!important}.combined-part{margin:10mm auto!important;background:#fff;box-shadow:0 2px 12px #0002}}@media print{html,body,.combined-part{background:#fff!important}.combined-part{margin:0!important}.combined-part-3 .page{margin:0!important}}img{max-width:100%;}</style></head><body>'+bodyText+'</body></html>';
   w.document.open();w.document.write(html);w.document.close();
   printDocumentWhenReady(w);
-  }catch(error){w.close();throw error;}
+  }catch(error){try{w.document.open();w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>Gagal menyiapkan dokumen</title></head><body style="font:16px Arial;padding:32px;color:#8b2525"><h2>Gagal menyiapkan seluruh dokumen</h2><p>'+String(error?.message||error).replace(/[&<>\"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[ch]))+'</p><p>Tutup tab ini dan coba kembali.</p></body></html>');w.document.close();}catch{}throw error;}
 }
