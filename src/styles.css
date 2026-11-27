@@ -646,3 +646,16 @@ footer{font-family:inherit!important;font-size:10px!important;color:#9aa8b8!impo
 .stats article,.panel{background:#ffffffd9;border-color:#dfe7f6;box-shadow:0 7px 22px #162a5810;backdrop-filter:blur(10px)}
 .stats article{border-left:3px solid #526de2}
 @media(max-width:620px){.shell aside{background:linear-gradient(110deg,#050713 0%,#0b1d50 64%,#15105a 100%);border-top-color:#566be2}.shell aside::before{display:none}.hero{background:radial-gradient(ellipse at 95% 5%,#314bc0 0%,transparent 48%),radial-gradient(ellipse at 85% 95%,#4b24b7 0%,transparent 46%),linear-gradient(130deg,#030713,#08183c 42%,#12327d 75%,#17105a)}}
+
+/* Compact collapsible form sections: all data and controls remain intact */
+.form-accordion{border:1px solid #d9e4f0;border-radius:14px;background:linear-gradient(145deg,#fff,#f8fbff);margin:12px 0;overflow:clip;box-shadow:0 4px 15px #173a5c08}
+.form-accordion-summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 18px;color:#153b61;font:850 13px Manrope,system-ui,sans-serif;letter-spacing:.2px;user-select:none}
+.form-accordion-summary::-webkit-details-marker{display:none}
+.form-accordion-summary::after{content:'⌄';font:700 20px system-ui;color:#526de2;transition:transform .18s ease;line-height:1}
+.form-accordion[open]>.form-accordion-summary{background:linear-gradient(100deg,#f2f6ff,#f9faff);border-bottom:1px solid #e5ebf5}
+.form-accordion[open]>.form-accordion-summary::after{transform:rotate(180deg)}
+.form-accordion>h4,.form-accordion>.repeat-head{margin-top:0;border-top:0;padding-top:16px}
+.form-accordion>h4,.form-accordion>.repeat-head,.form-accordion>.grid,.form-accordion>.item-switcher,.form-accordion>.item-editor-card,.form-accordion>.grand-total,.form-accordion>.product-reference-group,.form-accordion>p,.form-accordion>.attachment-grid,.form-accordion>.attachment-list{margin-left:16px;margin-right:16px}
+.form-accordion>h4{margin-top:16px}
+.form-accordion>.grid:last-child,.form-accordion>.grand-total:last-child{margin-bottom:16px}
+@media(max-width:620px){.form-accordion-summary{padding:14px 15px;font-size:12px}.form-accordion>h4,.form-accordion>.repeat-head,.form-accordion>.grid,.form-accordion>.item-switcher,.form-accordion>.item-editor-card,.form-accordion>.grand-total,.form-accordion>.product-reference-group,.form-accordion>p,.form-accordion>.attachment-grid,.form-accordion>.attachment-list{margin-left:10px;margin-right:10px}.form-accordion>h4{margin-top:12px}}
