@@ -629,3 +629,20 @@ footer{font-family:inherit!important;font-size:10px!important;color:#9aa8b8!impo
  .stats{gap:8px!important;margin:15px 0!important}.stats article{padding:14px 11px!important;border-radius:14px!important}.stats span{font-size:9px!important}.stats b{font-size:22px!important}
  .panel{padding:17px!important;border-radius:16px!important}.panel h3{font-size:16px!important}
 }
+
+/* Premium iPhone wallpaper-inspired blue/violet surfaces */
+.shell aside{background:linear-gradient(160deg,#050713 0%,#07132c 36%,#0b1d50 68%,#10104a 100%);box-shadow:5px 0 28px #05071135}
+.shell aside::before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 12% 18%,#203d95a0 0%,transparent 42%),radial-gradient(ellipse at 88% 80%,#4421a65c 0%,transparent 45%);opacity:.8}
+.shell aside>*{position:relative;z-index:1}
+.nav.active,.nav:hover{background:linear-gradient(115deg,#1b2f66,#253b85);box-shadow:inset 0 0 0 1px #627be65c;color:#fff}
+.count{background:#253c87;color:#dce6ff}
+.side-bottom{border-top-color:#26366d}
+.shell main{background:linear-gradient(145deg,#f3f6fc 0%,#edf1fb 48%,#f5f2ff 100%)}
+.shell header{background:#f9fbffed;backdrop-filter:blur(16px);border-bottom-color:#dce5f5}
+.content{position:relative}
+.hero{background:radial-gradient(ellipse at 88% 12%,#273fae 0%,transparent 42%),radial-gradient(ellipse at 78% 92%,#5125b9 0%,transparent 44%),linear-gradient(130deg,#030713 0%,#071638 36%,#102d78 68%,#15105a 100%);box-shadow:0 18px 42px #101e5030;border:1px solid #6479df35;position:relative;overflow:hidden}
+.hero::after{content:"";position:absolute;right:-16%;top:-32%;width:62%;height:150%;border-radius:50%;background:linear-gradient(135deg,#2945c333,#4a23c522 50%,transparent 72%);filter:blur(20px);pointer-events:none}
+.hero>*{position:relative;z-index:1}
+.stats article,.panel{background:#ffffffd9;border-color:#dfe7f6;box-shadow:0 7px 22px #162a5810;backdrop-filter:blur(10px)}
+.stats article{border-left:3px solid #526de2}
+@media(max-width:620px){.shell aside{background:linear-gradient(110deg,#050713 0%,#0b1d50 64%,#15105a 100%);border-top-color:#566be2}.shell aside::before{display:none}.hero{background:radial-gradient(ellipse at 95% 5%,#314bc0 0%,transparent 48%),radial-gradient(ellipse at 85% 95%,#4b24b7 0%,transparent 46%),linear-gradient(130deg,#030713,#08183c 42%,#12327d 75%,#17105a)}}
