@@ -538,3 +538,94 @@ footer{color:#9aa9ba}
 .hero .brand-credit .brand-location{font-size:clamp(14px,1.5vw,18px)!important;font-weight:800!important;color:#dbeafe!important;font-style:normal!important}
 .hero .brand-credit small{font-size:clamp(11px,1.1vw,13px)!important;color:#f5cf72!important;font-weight:900!important;text-transform:uppercase!important;letter-spacing:.4px!important}
 @media(max-width:620px){.hero .brand-credit{gap:7px!important}.hero .brand-credit b{font-size:15px!important}.hero .brand-credit .brand-location{font-size:13px!important}.hero .brand-credit small{font-size:11px!important}}
+
+/* Premium Apple-inspired dashboard + sidebar refinement */
+:root{
+ --ui-ink:#111827;--ui-muted:#718096;--ui-navy:#081b33;--ui-blue:#285b8d;--ui-gold:#d6ad68;
+ --ui-surface:#ffffff;--ui-border:#e4eaf1;
+ font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Segoe UI",system-ui,sans-serif;
+}
+.shell aside{
+ width:272px!important;padding:24px 18px!important;
+ background:linear-gradient(180deg,#07172d 0%,#102b4c 62%,#16395e 100%)!important;
+ box-shadow:12px 0 32px rgba(7,24,44,.08);border-right:1px solid rgba(255,255,255,.07);
+}
+.shell main{margin-left:272px!important}
+.shell aside .brand{display:flex!important;align-items:center!important;padding:0 4px 22px!important;margin-bottom:22px!important;border-bottom:1px solid rgba(255,255,255,.11)}
+.shell aside .brand-identity.compact{gap:11px!important;align-items:center!important}
+.shell aside .brand-identity.compact .labusel-seal{width:50px!important;height:50px!important;border:2px solid rgba(255,255,255,.8);box-shadow:0 4px 16px #0004}
+.shell aside .brand-identity.compact .brand-credit b{
+ color:#f8fafc!important;font-size:12.5px!important;line-height:1.32!important;font-weight:800!important;letter-spacing:-.25px!important;
+}
+.shell aside .menu-label{display:block!important;color:#93a9c3!important;font-size:9px!important;letter-spacing:1.8px!important;padding:0 10px 10px!important}
+.shell aside>.nav{
+ display:flex!important;flex-direction:row!important;justify-content:flex-start!important;align-items:center!important;
+ min-height:48px!important;padding:0 12px!important;margin:4px 0!important;gap:12px!important;
+ border-radius:12px!important;text-align:left!important;font-size:12px!important;font-weight:700!important;line-height:1.2!important;color:#c8d5e4!important;
+}
+.shell aside>.nav svg{width:18px!important;height:18px!important;flex:0 0 18px!important;opacity:.92}
+.shell aside>.nav.active{background:linear-gradient(100deg,rgba(65,111,162,.42),rgba(255,255,255,.045))!important;box-shadow:inset 0 0 0 1px rgba(214,173,104,.45),0 5px 15px #0002!important;color:#fff!important}
+.shell aside>.nav:hover{background:rgba(255,255,255,.075)!important;color:#fff!important}
+.shell aside .count{margin-left:auto!important;background:rgba(214,173,104,.18)!important;color:#e9c982!important;border:1px solid rgba(214,173,104,.22)!important}
+.shell aside .side-bottom{display:block!important;margin-top:auto!important;border-top:1px solid rgba(255,255,255,.12)!important;padding-top:14px!important}
+.shell aside .side-bottom>span{color:#9db2c8!important;font-size:10px!important;padding:8px 10px!important}
+.shell aside .side-bottom .nav{min-height:42px!important}
+.shell header{height:86px!important;padding:18px 38px!important;background:rgba(255,255,255,.88)!important;backdrop-filter:blur(16px)!important;border-bottom:1px solid #e5ebf2!important}
+.shell header h2{font-family:inherit!important;font-size:22px!important;font-weight:850!important;letter-spacing:-.65px!important;color:#12243a!important}
+.shell header small{font-size:9px!important;letter-spacing:2px!important;font-weight:800!important;color:#8b98a8!important}
+.connected{background:#edf8f2;color:#25845a!important;border:1px solid #d6eee0;padding:7px 10px;border-radius:20px;font-size:10px!important;font-weight:800!important}
+.content{padding:34px 38px!important;max-width:1600px!important}
+.hero{
+ background:linear-gradient(115deg,#07162c 0%,#13365b 54%,#285e92 100%)!important;
+ border-radius:28px!important;padding:42px 44px!important;box-shadow:0 24px 60px rgba(9,31,55,.16)!important;
+ border:1px solid rgba(255,255,255,.08)!important;position:relative!important;isolation:isolate!important;
+}
+.hero:before{content:"";position:absolute;inset:0;z-index:-1;background:radial-gradient(circle at 85% 18%,rgba(218,177,105,.22),transparent 34%),linear-gradient(120deg,transparent 55%,rgba(255,255,255,.04));pointer-events:none}
+.hero:after{right:-150px!important;top:-190px!important;width:450px!important;height:450px!important;background:radial-gradient(circle,rgba(218,177,105,.2),transparent 68%)!important}
+.hero .brand-identity{display:flex!important;align-items:center!important;gap:16px!important;margin-bottom:28px!important;max-width:900px!important}
+.hero .labusel-seal{width:72px!important;height:72px!important;border:3px solid rgba(255,255,255,.86)!important;box-shadow:0 8px 24px #0003!important}
+.hero .brand-credit{gap:8px!important}
+.hero .brand-credit b{font-size:clamp(16px,1.7vw,21px)!important;line-height:1.22!important;font-weight:850!important;letter-spacing:-.45px!important;color:#fff!important}
+.hero .brand-credit .brand-location{font-size:clamp(12px,1.3vw,16px)!important;line-height:1.3!important;font-weight:750!important;letter-spacing:.8px!important;color:#dce9f6!important}
+.hero .brand-credit small{font-size:11px!important;line-height:1.3!important;font-weight:900!important;letter-spacing:1.05px!important;color:#e8c47e!important}
+.hero>small{display:inline-flex!important;align-items:center!important;gap:8px!important;color:#e3bd78!important;font-size:10px!important;letter-spacing:2.1px!important;font-weight:900!important;margin:0 0 12px!important}
+.hero h1{max-width:980px!important;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",system-ui,sans-serif!important;font-size:clamp(31px,3.4vw,48px)!important;line-height:1.1!important;font-weight:900!important;letter-spacing:-1.65px!important;color:#f8fafc!important;margin:0 0 25px!important;text-wrap:balance}
+.hero .light-btn{background:linear-gradient(110deg,#f2d18b,#d4a553)!important;color:#0b1e34!important;border-radius:13px!important;padding:14px 19px!important;font-size:12px!important;font-weight:850!important;box-shadow:0 8px 24px #0002!important;margin-top:0!important;transition:transform .2s,filter .2s}
+.hero .light-btn:hover{transform:translateY(-2px);filter:brightness(1.04)}
+.stats{gap:16px!important;margin:24px 0!important}
+.stats article{border:1px solid #e3eaf2!important;border-radius:18px!important;padding:20px 22px!important;background:linear-gradient(145deg,#fff,#f9fbfd)!important;box-shadow:0 8px 22px #102b4e08!important;transition:transform .18s,box-shadow .18s}
+.stats article:hover{transform:translateY(-2px);box-shadow:0 12px 26px #102b4e12!important}
+.stats span{font-size:11px!important;font-weight:700!important;color:#718096!important}
+.stats b{font-family:inherit!important;font-size:29px!important;font-weight:900!important;letter-spacing:-1px!important;color:#172d45!important}
+.panel{border-radius:20px!important;border:1px solid #e2e9f1!important;box-shadow:0 12px 30px rgba(18,45,75,.055)!important;padding:25px!important}
+.panel h3{font-family:inherit!important;font-size:18px!important;font-weight:850!important;letter-spacing:-.45px!important;color:#142a42!important}
+.panel-head{padding-bottom:17px!important;border-bottom:1px solid #edf1f5!important}
+.folder-summary{font-size:11px!important;font-weight:700!important;color:#6d7e91!important}
+.opd-folder{border-radius:14px!important;border:1px solid #e3eaf2!important;background:linear-gradient(140deg,#fff,#f8fafc)!important;transition:all .18s}
+.opd-folder:hover{border-color:#c7d8e8!important;box-shadow:0 8px 22px #173a5c10!important;transform:translateY(-1px)}
+footer{font-family:inherit!important;font-size:10px!important;color:#9aa8b8!important}
+@media(max-width:900px){
+ .shell aside{width:232px!important}.shell main{margin-left:232px!important}
+ .content{padding:24px!important}.hero{padding:30px!important}
+}
+@media(max-width:650px){
+ .shell aside{position:sticky!important;top:0!important;z-index:30;width:100%!important;height:auto!important;display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:4px!important;padding:9px 10px 10px!important;box-shadow:0 6px 18px #07172d20!important}
+ .shell aside .brand{grid-column:1/-1!important;padding:3px 6px 10px!important;margin:0 0 5px!important;border-bottom:1px solid rgba(255,255,255,.1)!important}
+ .shell aside .brand-identity.compact .labusel-seal{width:38px!important;height:38px!important}
+ .shell aside .brand-identity.compact .brand-credit b{font-size:11px!important;max-width:260px!important}
+ .shell aside .menu-label,.shell aside .side-bottom{display:none!important}
+ .shell aside>.nav{min-height:52px!important;flex-direction:column!important;justify-content:center!important;gap:4px!important;padding:4px 2px!important;font-size:9px!important;text-align:center!important;white-space:nowrap!important}
+ .shell aside>.nav svg{width:17px!important;height:17px!important}
+ .shell aside>.nav .count{position:absolute!important;margin:0!important;transform:translate(21px,-14px)!important;font-size:8px!important;padding:2px 5px!important}
+ .shell main{margin:0!important}.shell header{height:70px!important;padding:12px 16px!important}
+ .shell header h2{font-size:18px!important}.content{padding:15px!important}
+ .hero{padding:25px 20px!important;border-radius:21px!important}
+ .hero .brand-identity{gap:10px!important;margin-bottom:22px!important}
+ .hero .labusel-seal{width:56px!important;height:56px!important}
+ .hero .brand-credit b{font-size:14px!important}.hero .brand-credit .brand-location{font-size:11px!important;letter-spacing:.35px!important}.hero .brand-credit small{font-size:9px!important;letter-spacing:.6px!important}
+ .hero>small{font-size:9px!important;letter-spacing:1.7px!important;margin-bottom:9px!important}
+ .hero h1{font-size:clamp(27px,8vw,34px)!important;letter-spacing:-1px!important;line-height:1.12!important;margin-bottom:20px!important}
+ .hero .light-btn{width:100%!important;justify-content:center!important;padding:13px 15px!important}
+ .stats{gap:8px!important;margin:15px 0!important}.stats article{padding:14px 11px!important;border-radius:14px!important}.stats span{font-size:9px!important}.stats b{font-size:22px!important}
+ .panel{padding:17px!important;border-radius:16px!important}.panel h3{font-size:16px!important}
+}
