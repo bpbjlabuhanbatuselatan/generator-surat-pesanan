@@ -94,7 +94,6 @@ export const reviewTemplateBank = [
  "Dokumen dan bukti pendukung yang tersedia telah menjadi bahan penyusunan hasil reviu. Kelengkapan dokumentasi perlu dijaga dan dilengkapi sesuai aspek yang diperiksa, sehingga hasil reviu dapat ditelusuri dan digunakan sebagai bahan pertimbangan proses pengadaan selanjutnya.",
  "Berdasarkan pemeriksaan, pengadaan dapat dipertimbangkan untuk dilanjutkan dengan memperhatikan kesesuaian kebutuhan, spesifikasi teknis, kewajaran harga, ketersediaan produk, pemilihan penyedia, serta ketentuan yang berlaku. Setiap kondisi khusus atau hal yang belum terverifikasi harus ditindaklanjuti sebelum dokumen ditetapkan.",
  "Kesimpulan reviu disusun berdasarkan data paket, informasi katalog, hasil penelaahan, dan dokumen pendukung yang tersedia pada saat pemeriksaan. Kesimpulan tidak menggantikan verifikasi kondisi aktual; pihak terkait agar memastikan seluruh informasi dan persyaratan yang diperlukan dipenuhi sebelum pelaksanaan pengadaan dilanjutkan."
- ]},
  ]}
 ];
 export default function ReviewTemplateEditor({items,onChange}){

@@ -405,7 +405,6 @@ button,input,select,textarea{font-family:inherit}
 }
 
 /* VISIBLE PREMIUM REDESIGN V2 — strongly overrides legacy visual styles */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800;900&display=swap');
 :root{--premium-bg:#f2f5fa;--premium-ink:#111827;--premium-blue:#315f98;--premium-navy:#07162b;--premium-gold:#d5ad69;--premium-border:#e2e8f0}
 body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",Inter,Roboto,system-ui,sans-serif!important;background:var(--premium-bg)!important;color:var(--premium-ink)!important}
 button,input,select,textarea{font-family:inherit!important}
