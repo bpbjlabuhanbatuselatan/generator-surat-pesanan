@@ -496,3 +496,10 @@ footer{color:#9aa9ba}
 .stats span{font-size:11px!important}
 .stats b{font-size:clamp(24px,2.4vw,31px)!important;margin-top:4px!important}
 @media(max-width:620px){.hero{min-height:230px!important;padding:22px 19px!important;border-radius:22px!important}.hero .brand-identity{margin-bottom:15px!important}.hero .labusel-seal{width:43px!important;height:43px!important}.hero h1{font-size:clamp(28px,7.4vw,34px)!important;letter-spacing:-1px!important}.hero p{font-size:12px!important}.hero .light-btn{padding:10px 14px!important}.stats article{padding:14px 12px!important}.stats b{font-size:23px!important}}
+/* FIX OFFICIAL SEAL: use original upload, never rotate/distort */
+.labusel-seal{transform:none!important;rotate:none!important;object-fit:contain!important;object-position:center!important;background:#fff!important;border-radius:50%!important;padding:0!important;overflow:hidden!important}
+.brand-identity .labusel-seal{flex-shrink:0!important}
+.hero .labusel-seal{width:52px!important;height:52px!important}
+.brand-identity.compact .labusel-seal{width:50px!important;height:50px!important}
+.login-card .brand-identity.compact .labusel-seal{width:64px!important;height:64px!important}
+@media(max-width:620px){.hero .labusel-seal{width:44px!important;height:44px!important}.brand-identity.compact .labusel-seal{width:44px!important;height:44px!important}}
