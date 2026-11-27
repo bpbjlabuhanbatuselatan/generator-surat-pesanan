@@ -452,3 +452,31 @@ button,input,select,textarea{font-family:inherit!important}
 .empty{border:1px dashed #cbd8e6!important;border-radius:18px!important;background:#fbfdff!important}
 footer{color:#9aa9ba}
 @media(max-width:620px){.content{padding:14px!important}.hero{padding:25px 20px!important;border-radius:21px!important}.hero h1{font-size:28px!important;letter-spacing:-.9px!important}.panel{padding:16px 14px!important;border-radius:18px!important}.stats article{padding:12px!important}.stats b{font-size:22px!important}.login-card{padding:28px 23px!important}.shell aside{background:linear-gradient(165deg,#061326,#15395f)!important}}
+/* HOMEPAGE VISUAL REWORK — immersive iPhone-inspired blue/purple glow */
+.hero{isolation:isolate;position:relative;overflow:hidden!important;min-height:350px;padding:clamp(26px,4vw,52px)!important;border-radius:30px!important;background:radial-gradient(ellipse 62% 55% at 82% 12%,rgba(101,75,255,.60),transparent 70%),radial-gradient(ellipse 55% 62% at 68% 94%,rgba(0,130,255,.55),transparent 74%),radial-gradient(ellipse 45% 65% at 8% 95%,rgba(25,74,185,.55),transparent 72%),linear-gradient(130deg,#050914 0%,#09152d 38%,#102b67 72%,#08152a 100%)!important;box-shadow:0 26px 70px rgba(3,13,35,.24),inset 0 1px 0 rgba(255,255,255,.15)!important}
+.hero:before{content:"";position:absolute;z-index:-1;inset:-35% -10% -35% 35%;background:radial-gradient(ellipse at 22% 35%,rgba(60,112,255,.85),transparent 30%),radial-gradient(ellipse at 75% 52%,rgba(135,50,255,.62),transparent 34%),radial-gradient(ellipse at 48% 80%,rgba(0,115,255,.6),transparent 28%);filter:blur(38px);opacity:.72;animation:homeGlowDrift 14s ease-in-out infinite alternate}
+.hero:after{content:"";position:absolute;z-index:-1;right:-16%;top:-34%;width:65%;height:150%;border-radius:48% 52% 65% 35%/45% 45% 55% 55%;transform:rotate(28deg);background:linear-gradient(135deg,rgba(108,141,255,.16),rgba(55,35,210,.35) 38%,rgba(0,8,26,.15) 62%,rgba(69,160,255,.26));border:1px solid rgba(190,205,255,.13);box-shadow:inset 0 0 80px rgba(80,95,255,.18),0 0 80px rgba(70,75,255,.2);filter:blur(1px);pointer-events:none}
+.hero h1{font-size:clamp(36px,4.5vw,60px)!important;line-height:1.04!important;letter-spacing:-2.2px!important;font-weight:900!important;max-width:780px;text-shadow:0 5px 30px rgba(0,0,0,.2)}
+.hero p{font-size:clamp(14px,1.4vw,17px)!important;line-height:1.65!important;color:rgba(235,244,255,.88)!important;max-width:640px}
+.hero>small{font-size:11px!important;letter-spacing:2.4px!important;color:#c4d5ff!important;font-weight:800!important}
+.hero .brand-identity{margin-bottom:28px!important;max-width:440px}
+.hero .brand-credit b{font-size:14px!important;font-weight:850!important;letter-spacing:-.2px}
+.hero .brand-credit span{font-size:12px!important;color:#d0dcf8!important}
+.hero .brand-credit small{font-size:11px!important;color:#9cb6e8!important}
+.hero .labusel-seal{width:64px!important;height:64px!important;object-fit:contain!important;border-radius:50%!important;background:#fff!important;padding:3px!important;box-shadow:0 0 0 1px rgba(255,255,255,.4),0 12px 30px rgba(0,0,0,.28)!important}
+.hero .light-btn{margin-top:18px!important;padding:14px 20px!important;border-radius:15px!important;font-weight:850!important;font-size:14px!important;background:linear-gradient(145deg,#fff,#e6efff)!important;color:#123362!important;box-shadow:0 12px 28px rgba(0,0,0,.18)!important}
+.hero .light-btn:hover{transform:translateY(-2px);box-shadow:0 16px 34px rgba(0,0,0,.24)!important}
+.stats{display:grid;gap:16px!important;margin:18px 0 22px!important}
+.stats article{position:relative;overflow:hidden;padding:23px 24px!important;border-radius:21px!important;background:linear-gradient(145deg,#fff,#f5f8ff)!important;border:1px solid #e3eaf4!important;box-shadow:0 12px 28px rgba(19,46,80,.055)!important}
+.stats article:before{content:"";position:absolute;inset:0 auto 0 0;width:4px;background:linear-gradient(#4f83d5,#9d7cff);border-radius:4px}
+.stats span{font-size:12px!important;color:#64748b!important;font-weight:800!important;letter-spacing:.2px!important}
+.stats b{font-size:clamp(28px,3vw,38px)!important;line-height:1.2!important;color:#10233f!important;font-weight:900!important;letter-spacing:-1.2px!important;margin-top:7px;display:block}
+.panel{border-radius:22px!important;padding:26px!important}
+.panel h3{font-size:clamp(19px,2vw,24px)!important;font-weight:900!important;letter-spacing:-.7px!important}
+.panel-head .muted{font-size:13px!important;line-height:1.6!important}
+.opd-folder{border:1px solid #e3eaf4!important;border-radius:17px!important;background:linear-gradient(145deg,#fff,#f7faff)!important;padding:17px!important}
+.opd-folder-copy b{font-size:14px!important;line-height:1.4!important;font-weight:850!important;color:#193554!important}
+.opd-folder-copy small{font-size:12px!important;color:#70839a!important}
+.shell header h2{font-size:clamp(21px,2.3vw,28px)!important;font-weight:900!important;letter-spacing:-1px!important}
+@keyframes homeGlowDrift{from{transform:translate3d(-2%,0,0) scale(.94)}to{transform:translate3d(3%,2%,0) scale(1.08)}}
+@media(max-width:620px){.hero{min-height:310px!important;padding:24px 20px!important;border-radius:24px!important}.hero h1{font-size:clamp(31px,9vw,40px)!important;letter-spacing:-1.5px!important}.hero .labusel-seal{width:54px!important;height:54px!important}.hero .brand-identity{margin-bottom:23px!important}.hero .light-btn{width:auto;max-width:100%;font-size:13px!important}.stats article{padding:16px 15px!important}.stats span{font-size:11px!important}.stats b{font-size:25px!important}.panel{padding:18px 15px!important}}
