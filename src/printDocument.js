@@ -330,8 +330,9 @@ async function printDocumentWhenReady(w) {
   else w.addEventListener('load', run, { once: true });
 }
 
-export async function openProcurementPrint(db, id) {
-  const w=reservePrintWindow('Menyiapkan surat pesanan...','Izinkan pop-up browser untuk mencetak dokumen.');
+export async function openProcurementPrint(db, id, preopenedWindow=null) {
+  const w=preopenedWindow||reservePrintWindow('Menyiapkan surat pesanan...','Izinkan pop-up browser untuk mencetak dokumen.');
+  if(preopenedWindow){w.document.open();w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>Menyiapkan Surat Pesanan</title></head><body style="font:16px Arial;padding:32px">Menyiapkan Surat Pesanan...</body></html>');w.document.close();}
   try{const html=await buildProcurementHtml(db,id);w.document.open();w.document.write(html);w.document.close();printDocumentWhenReady(w);}
   catch(error){w.close();throw error;}
 }
