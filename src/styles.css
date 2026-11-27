@@ -719,3 +719,9 @@ footer{font-family:inherit!important;font-size:10px!important;color:#9aa8b8!impo
  .form-accordion-summary::before{height:26px;margin-right:9px}
  .form-accordion>h4{padding:10px!important}
 }
+
+/* Inline product picker in provider reference section */
+.reference-product-picker{max-width:760px;margin:16px 0 22px;padding:16px;border:1px solid #c7d6f2;border-radius:14px;background:linear-gradient(135deg,#eaf1ff,#f8faff);}
+.reference-product-picker select{font-weight:700;border-color:#9bb4e2!important;min-height:48px;background:#fff!important;}
+.reference-product-picker small{display:block;margin-top:7px;color:#50658d;line-height:1.5;}
+@media(max-width:620px){.reference-product-picker{padding:12px;margin:12px 0 18px}}
