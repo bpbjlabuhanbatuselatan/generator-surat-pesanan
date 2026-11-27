@@ -503,3 +503,18 @@ footer{color:#9aa9ba}
 .brand-identity.compact .labusel-seal{width:50px!important;height:50px!important}
 .login-card .brand-identity.compact .labusel-seal{width:64px!important;height:64px!important}
 @media(max-width:620px){.hero .labusel-seal{width:44px!important;height:44px!important}.brand-identity.compact .labusel-seal{width:44px!important;height:44px!important}}
+
+/* BRAND IDENTITY — improved hierarchy, sizing and contrast */
+.brand-identity.compact{gap:12px!important;align-items:center!important}
+.brand-identity.compact .labusel-seal{width:64px!important;height:64px!important}
+.brand-identity.compact .brand-credit{gap:5px!important}
+.brand-identity.compact .brand-credit b{font-size:15px!important;line-height:1.25!important;font-weight:850!important;letter-spacing:-.25px!important;color:#fff!important}
+.brand-identity.compact .brand-credit span{font-size:12px!important;line-height:1.35!important;font-weight:650!important;color:#e5efff!important}
+.brand-identity.compact .brand-credit small{font-size:11px!important;line-height:1.3!important;font-weight:750!important;color:#f6d98d!important;letter-spacing:.15px!important}
+.hero .brand-identity{gap:14px!important;align-items:center!important;max-width:100%!important}
+.hero .labusel-seal{width:68px!important;height:68px!important}
+.hero .brand-credit{gap:6px!important}
+.hero .brand-credit b{font-size:17px!important;line-height:1.3!important;font-weight:900!important;color:#fff!important;letter-spacing:-.25px!important}
+.hero .brand-credit span{font-size:14px!important;line-height:1.4!important;font-weight:700!important;color:#f0f5ff!important}
+.hero .brand-credit small{font-size:12px!important;line-height:1.4!important;font-weight:750!important;color:#ffe09a!important}
+@media(max-width:620px){.brand-identity.compact{gap:9px!important}.brand-identity.compact .labusel-seal{width:54px!important;height:54px!important}.brand-identity.compact .brand-credit b{font-size:13px!important}.brand-identity.compact .brand-credit span{font-size:11px!important}.brand-identity.compact .brand-credit small{font-size:10px!important}.hero .brand-identity{gap:10px!important}.hero .labusel-seal{width:58px!important;height:58px!important}.hero .brand-credit b{font-size:15px!important}.hero .brand-credit span{font-size:12px!important}.hero .brand-credit small{font-size:11px!important}}
