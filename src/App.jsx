@@ -26,7 +26,7 @@ const autoCategoryNote=(item,status)=>{
 };
 
 const blankSimilar=()=>({merek:'',spesifikasi:'',harga:''});
-const blankItem=()=>({nama_barang:'',kategori_kebutuhan:'',kategori_katalog:'',hasil_kategori:'perlu_dilengkapi',catatan_kategori:'',spesifikasi:'',rekomendasi_produk_index:'',volume:'1',satuan:'unit',harga_satuan:'0',pagu_dpa_rka:'',keterangan:'',foto:null,produk_mirip:[blankSimilar()],produk_dalam_negeri:false,umkm:false,sesuai_spesifikasi:true,bukti:null});
+const blankItem=()=>({nama_barang:'',kategori_kebutuhan:'',kategori_katalog:'',hasil_kategori:'',catatan_kategori:'',spesifikasi:'',rekomendasi_produk_index:'',volume:'1',satuan:'unit',harga_satuan:'0',pagu_dpa_rka:'',keterangan:'',foto:null,produk_mirip:[blankSimilar()],produk_dalam_negeri:false,umkm:false,sesuai_spesifikasi:true,bukti:null});
 const blankProvider=(product_index=0)=>({product_index,nama_penyedia:'',link_produk:'',harga_satuan:'',lokasi:'',kesesuaian:'Sesuai',prioritas:'PDN',jenis_produk:'Belum diverifikasi',nilai_tkdn:'',nilai_bmp:'',nama_pemilik_sertifikat:'',jenis_produk_tkdn:'',foto_produk:null});
 const blankOfficial=role=>({peran:role,nama:'',nip:'',jabatan:role,tanda_tangan:null});
 const attachmentTypes=['Bukti e-Katalog','Penawaran penyedia','Data SIRUP','DPA / RKA','Dokumen lainnya'];
