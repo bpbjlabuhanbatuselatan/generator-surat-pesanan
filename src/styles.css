@@ -757,3 +757,44 @@ footer{font-family:inherit!important;font-size:10px!important;color:#9aa8b8!impo
  .form-accordion .field{font-size:10.5px!important}
  .form-accordion .field input,.form-accordion .field select,.form-accordion .field textarea{font-size:12px!important}
 }
+
+/* Modern visual treatment for Berita Acara Reviu only */
+.review-template-editor{display:flex;flex-direction:column;gap:16px;margin:12px 0 20px;color:#18314d}
+.review-template-hero{display:flex;gap:15px;align-items:center;padding:22px;border-radius:18px;background:linear-gradient(125deg,#102b4e 0%,#194b77 58%,#246b87 100%);color:#f6fbff;box-shadow:0 12px 28px rgba(18,49,80,.15)}
+.review-template-mark{display:flex;align-items:center;justify-content:center;min-width:56px;height:56px;border-radius:16px;background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.2);font-weight:900;font-size:19px;letter-spacing:1px}
+.review-template-hero .review-eyebrow{display:block;font-size:10px;letter-spacing:1.5px;font-weight:800;color:#b9d7ef;margin-bottom:4px}
+.review-template-hero h3{margin:0 0 5px!important;color:#fff!important;font-size:22px!important;text-align:left!important}
+.review-template-hero p{margin:0;color:#dbeaf6;font-size:12px;line-height:1.6}
+.review-template-toolbar{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;padding:12px 15px;background:#e8f0f8;border:1px solid #d3e0ec;border-radius:12px;color:#284b6d;font-size:12px}
+.review-template-groups{display:flex;flex-direction:column;gap:11px}
+.review-template-group{background:#f4f7fb;border:1px solid #d9e3ee;border-radius:15px;overflow:hidden;box-shadow:0 3px 9px rgba(29,54,79,.04)}
+.review-template-group>summary{display:flex;align-items:center;gap:12px;cursor:pointer;list-style:none;padding:14px 15px;background:linear-gradient(90deg,#e7eef7,#f5f8fc);min-height:64px}
+.review-template-group>summary::-webkit-details-marker{display:none}
+.review-template-icon{display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:11px;background:#d5e5f5;color:#234d76;font-weight:800}
+.review-template-title{flex:1;font-weight:800;font-size:13px;color:#213e5e}
+.review-template-title small{display:block;font-weight:500;color:#667f98;font-size:11px;margin-top:3px}
+.review-template-count{font-size:10px;font-weight:700;padding:6px 9px;background:#fff;border:1px solid #d9e4ef;border-radius:999px;color:#52708c}
+.review-template-content{padding:12px;display:flex;flex-direction:column;gap:13px}
+.review-template-product{background:#fff;border:1px solid #e0e8f1;border-radius:12px;padding:12px}
+.review-template-product h5{font-size:12px;margin:0 0 10px;color:#173c63;padding-bottom:8px;border-bottom:1px solid #e8eef4}
+.review-template-option{display:flex;align-items:flex-start;gap:9px;padding:10px;margin:7px 0;border:1px solid #e5ebf2;border-radius:10px;background:#fbfcfe;cursor:pointer;transition:background .15s,border-color .15s}
+.review-template-option:has(input:checked){background:#edf6ff;border-color:#79a9d5;box-shadow:inset 3px 0 #2675b8}
+.review-template-option input{margin-top:3px;accent-color:#246da8;flex-shrink:0}
+.review-template-option span{min-width:0}
+.review-template-option b{display:block;font-size:10px;color:#54708b;margin-bottom:4px}
+.review-template-option p{font-size:11.5px;line-height:1.65;color:#334c63;margin:0}
+.review-manual-panel{padding:16px;background:linear-gradient(135deg,#fff8e9,#fffdf7);border:1px solid #efd9a9;border-radius:15px}
+.review-manual-heading{display:flex;gap:10px;align-items:center;margin-bottom:12px}
+.review-manual-heading>span{display:grid;place-items:center;width:35px;height:35px;background:#f3dba5;border-radius:10px;color:#75521d;font-weight:800}
+.review-manual-heading b{display:block;color:#6b4b1b;font-size:13px}
+.review-manual-heading small{display:block;color:#9a7946;font-size:11px;margin-top:3px}
+.review-manual-field{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.review-manual-field>b{font-size:11px;color:#79571f}
+.review-manual-field textarea{background:#fff;border:1px solid #e5c986;border-radius:10px;padding:11px;font-size:12px;line-height:1.6;color:#342d20;resize:vertical}
+.review-color-indigo>summary{background:linear-gradient(90deg,#e9eafb,#f7f8fe)}.review-color-indigo .review-template-icon{background:#d8ddfb;color:#3c478c}
+.review-color-amber>summary{background:linear-gradient(90deg,#fff0d5,#fff9ec)}.review-color-amber .review-template-icon{background:#f8dfaa;color:#84551c}
+.review-color-teal>summary{background:linear-gradient(90deg,#dff4f0,#f5fbfa)}.review-color-teal .review-template-icon{background:#c5e9e1;color:#246d61}
+.review-color-cyan>summary{background:linear-gradient(90deg,#dff3f8,#f5fbfd)}.review-color-cyan .review-template-icon{background:#c7e8f1;color:#236c85}
+.review-color-violet>summary{background:linear-gradient(90deg,#eee5fa,#faf7fe)}.review-color-violet .review-template-icon{background:#dfcff4;color:#64448c}
+@media(max-width:700px){.review-template-hero{padding:16px;border-radius:14px;gap:11px}.review-template-mark{min-width:46px;height:46px;border-radius:13px}.review-template-hero h3{font-size:18px!important}.review-template-toolbar{padding:10px;font-size:11px}.review-template-group>summary{padding:11px;gap:8px}.review-template-title{font-size:12px}.review-template-count{font-size:9px;padding:5px 7px}.review-template-content{padding:8px}.review-template-product{padding:9px}.review-template-option{padding:9px}.review-template-option p{font-size:11px}.review-manual-panel{padding:12px}}
+
