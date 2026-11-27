@@ -659,3 +659,63 @@ footer{font-family:inherit!important;font-size:10px!important;color:#9aa8b8!impo
 .form-accordion>h4{margin-top:16px}
 .form-accordion>.grid:last-child,.form-accordion>.grand-total:last-child{margin-bottom:16px}
 @media(max-width:620px){.form-accordion-summary{padding:14px 15px;font-size:12px}.form-accordion>h4,.form-accordion>.repeat-head,.form-accordion>.grid,.form-accordion>.item-switcher,.form-accordion>.item-editor-card,.form-accordion>.grand-total,.form-accordion>.product-reference-group,.form-accordion>p,.form-accordion>.attachment-grid,.form-accordion>.attachment-list{margin-left:10px;margin-right:10px}.form-accordion>h4{margin-top:12px}}
+
+/* FORM SECTION VISUAL HIERARCHY — premium contrast and work-friendly surfaces */
+.form-accordion{
+  border:1px solid #cbd8ec!important;
+  border-radius:16px!important;
+  background:linear-gradient(180deg,#f8faff 0%,#eef3fc 100%)!important;
+  box-shadow:0 6px 18px rgba(25,49,100,.07)!important;
+  margin:14px 0!important;
+}
+.form-accordion-summary{
+  position:relative!important;
+  min-height:64px!important;
+  padding:17px 20px 17px 18px!important;
+  color:#fff!important;
+  background:linear-gradient(110deg,#172b63 0%,#274a91 62%,#3c4eb0 100%)!important;
+  font:850 14px -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif!important;
+  letter-spacing:.15px!important;
+  text-shadow:0 1px 2px #07142b30!important;
+}
+.form-accordion-summary::before{
+  content:"";display:inline-block;flex:0 0 5px;height:30px;border-radius:8px;
+  background:linear-gradient(180deg,#f5d58b,#d7a84e);margin-right:12px;
+}
+.form-accordion-summary::after{color:#fff!important;font-size:22px!important}
+.form-accordion[open]>.form-accordion-summary{
+  background:linear-gradient(110deg,#101f49 0%,#244582 60%,#3548a5 100%)!important;
+  border-bottom:1px solid #5269c8!important;
+}
+.form-accordion:not([open])>.form-accordion-summary:hover{filter:brightness(1.08)}
+.form-accordion[open]{
+  border-color:#8499d9!important;
+  box-shadow:0 9px 26px rgba(36,64,139,.13)!important;
+}
+.form-accordion>h4{
+  color:#243f78!important;background:#e5ecfb!important;
+  border:1px solid #d0dcf5!important;border-radius:10px!important;
+  padding:12px 13px!important;margin-top:16px!important;
+}
+.form-accordion .field{color:#263d64!important;font-weight:800!important}
+.form-accordion .field input,.form-accordion .field select,.form-accordion .field textarea{
+  background:#fff!important;border:1px solid #bdcce4!important;
+  box-shadow:0 1px 3px #1b35630a!important;
+}
+.form-accordion .field input:focus,.form-accordion .field select:focus,.form-accordion .field textarea:focus{
+  border-color:#526de2!important;box-shadow:0 0 0 3px #526de21c!important;
+}
+.form-accordion .repeat-card,.form-accordion .review-card,.form-accordion .similar-card{
+  background:linear-gradient(145deg,#fff 0%,#f3f7ff 100%)!important;
+  border-color:#cbd8ec!important;
+}
+.form-accordion .reference-box{
+  background:linear-gradient(120deg,#eaf1ff,#fff)!important;
+  border-left-color:#526de2!important;
+}
+.form-accordion .repeat-title{color:#243f78!important}
+@media(max-width:620px){
+ .form-accordion-summary{min-height:58px!important;padding:14px 14px!important;font-size:12.5px!important}
+ .form-accordion-summary::before{height:26px;margin-right:9px}
+ .form-accordion>h4{padding:10px!important}
+}
