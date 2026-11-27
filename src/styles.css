@@ -797,3 +797,20 @@ footer{font-family:inherit!important;font-size:10px!important;color:#9aa8b8!impo
 .review-color-violet>summary{background:linear-gradient(90deg,#eee5fa,#faf7fe)}.review-color-violet .review-template-icon{background:#dfcff4;color:#64448c}
 @media(max-width:700px){.review-template-hero{padding:16px;border-radius:14px;gap:11px}.review-template-mark{min-width:46px;height:46px;border-radius:13px}.review-template-hero h3{font-size:18px!important}.review-template-toolbar{padding:10px;font-size:11px}.review-template-group>summary{padding:11px;gap:8px}.review-template-title{font-size:12px}.review-template-count{font-size:9px;padding:5px 7px}.review-template-content{padding:8px}.review-template-product{padding:9px}.review-template-option{padding:9px}.review-template-option p{font-size:11px}.review-manual-panel{padding:12px}}
 
+
+/* Settings master accordions - premium compact cards */
+.settings-accordion{border:1px solid #d9e5f1;border-radius:16px;overflow:hidden;margin:14px 0;background:linear-gradient(135deg,#f7fbff,#eef5fb);box-shadow:0 5px 16px rgba(23,55,88,.06);transition:box-shadow .2s,border-color .2s}
+.settings-accordion:hover{border-color:#a9c6df;box-shadow:0 8px 22px rgba(23,55,88,.09)}
+.settings-accordion[open]{border-color:#8fb6d7;box-shadow:0 8px 24px rgba(23,55,88,.1)}
+.settings-accordion-summary{display:flex!important;align-items:center;gap:14px;list-style:none;cursor:pointer;padding:18px 20px!important;min-height:82px;background:linear-gradient(115deg,#e8f2fb,#f5f9fd)!important;color:#183b5c;border:0;transition:background .2s}
+.settings-accordion:nth-of-type(2)>.settings-accordion-summary{background:linear-gradient(115deg,#eaf7f2,#f7fcfa)!important}
+.settings-accordion-summary::-webkit-details-marker{display:none}
+.settings-accordion-summary>span{display:grid;grid-template-columns:1fr;gap:5px;min-width:0;flex:1}
+.settings-accordion-summary>span b{font-size:15px;letter-spacing:.1px;color:#183b5c;line-height:1.35}
+.settings-accordion-summary>span small{font-size:12px;line-height:1.45;color:#647d95;display:block;margin:0}
+.settings-accordion-summary>svg:first-child{color:#2c6c9f;flex-shrink:0}
+.settings-accordion-summary>svg:last-child{color:#6c879e;transition:transform .2s;flex-shrink:0}
+.settings-accordion[open]>.settings-accordion-summary>svg:last-child{transform:rotate(90deg)}
+.settings-accordion[open]>.settings-accordion-summary{border-bottom:1px solid #dce7f1}
+.settings-accordion>.panel{margin:0!important;border:0!important;border-radius:0!important;box-shadow:none!important;background:#fff;padding:20px!important}
+@media(max-width:700px){.settings-accordion-summary{padding:15px!important;min-height:72px;gap:10px}.settings-accordion-summary>span b{font-size:14px}.settings-accordion-summary>span small{font-size:11px}.settings-accordion>.panel{padding:12px!important}}
