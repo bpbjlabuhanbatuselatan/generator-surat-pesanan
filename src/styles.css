@@ -518,3 +518,8 @@ footer{color:#9aa9ba}
 .hero .brand-credit span{font-size:14px!important;line-height:1.4!important;font-weight:700!important;color:#f0f5ff!important}
 .hero .brand-credit small{font-size:12px!important;line-height:1.4!important;font-weight:750!important;color:#ffe09a!important}
 @media(max-width:620px){.brand-identity.compact{gap:9px!important}.brand-identity.compact .labusel-seal{width:54px!important;height:54px!important}.brand-identity.compact .brand-credit b{font-size:13px!important}.brand-identity.compact .brand-credit span{font-size:11px!important}.brand-identity.compact .brand-credit small{font-size:10px!important}.hero .brand-identity{gap:10px!important}.hero .labusel-seal{width:58px!important;height:58px!important}.hero .brand-credit b{font-size:15px!important}.hero .brand-credit span{font-size:12px!important}.hero .brand-credit small{font-size:11px!important}}
+
+/* Final brand wording per user request */
+.brand-identity.compact .brand-credit b{color:#fff!important;font-size:15px!important;font-weight:900!important;line-height:1.25!important}
+.brand-identity.compact .brand-credit small{display:block!important;color:#f5cf72!important;font-size:11px!important;font-weight:900!important;line-height:1.3!important;letter-spacing:.35px!important;text-transform:uppercase!important}
+.hero .brand-identity .brand-credit span,.hero .brand-identity .brand-credit small{display:none!important}
